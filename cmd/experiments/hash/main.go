@@ -1,90 +1,53 @@
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"golang.org/x/crypto/scrypt"
 )
 
 func B(e []byte) []byte {
-	return e[:]
+	return e
 }
 
-func j(e []byte) ([]byte, error) {
-	hash := sha256.Sum256(e)
-	return hash[:], nil
-}
-
-func G(e []byte) string {
-	t := make([]string, len(e))
-	for _, r := range e {
-		t = append(t, fmt.Sprintf("%x", r>>4))
-		t = append(t, fmt.Sprintf("%x", 15&r))
-	}
-	return strings.Join(t, "")
-}
-
-func Y(e []byte) (cipher.Block, error) {
-	return aes.NewCipher(e)
+func j(e []byte) []byte {
+	digest := sha256.Sum256(e)
+	return digest[:]
 }
 
 const (
-	K    = "aes-256-gcm"
 	cost = 32768
+	r    = 8
+	p    = 1
 )
 
-type scrypt_Params struct {
-	N       int
-	R       int
-	P       int
-	KeyLen  int
-	SaltLen int
-	MaxMem  int
-	MaxSalt int
-}
+func J(e, t string) ([]byte, error) {
+	normalizedE := []byte(e)
+	normalizedT := []byte(t)
 
-var Q = scrypt_Params{
-	N:       cost,
-	R:       8,
-	P:       1,
-	MaxMem:  67108864,
-	MaxSalt: 32,
-}
-
-func J(e, t []byte) ([]byte, error) {
-	normalizedE := normalizeNFKC(string(e))
-	normalizedT := normalizeNFKC(string(t))
-	key, err := scrypt.Key([]byte(normalizedE), []byte(normalizedT), Q.N, Q.R, Q.P, Q.KeyLen)
+	key, err := scrypt.Key(normalizedE, normalizedT, cost, r, p, 32)
 	if err != nil {
 		return nil, err
 	}
+
 	return B(key), nil
 }
 
-func makeKeyHash(e, t []byte) (string, error) {
+func makeKeyHash(e, t string) (string, error) {
 	n, err := J(e, t)
 	if err != nil {
 		return "", err
 	}
-	hash, err := j(n)
-	if err != nil {
-		return "", err
-	}
-	return G(hash), nil
-}
 
-func normalizeNFKC(s string) string {
-	return strings.ToLower(strings.TrimSpace(s))
+	hash := j(n)
+	fmt.Println(hash)
+	return hex.EncodeToString(hash), nil
 }
 
 func main() {
-	e := []byte("ZsSjgKx4yaeBNCFipS)T")
-	t := []byte("jePEuEPhNsr8zguY3%98")
-	hash, err := makeKeyHash(e, t)
+	hash, err := makeKeyHash("ZsSjgKx4yaeBNCFipS)T", "jePEuEPhNsr8zguY3%98")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

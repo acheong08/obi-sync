@@ -4,13 +4,6 @@ function B(e) {
     return e.slice(e.byteOffset, e.byteOffset + e.byteLength);
 }
 
-
-
-async function _(e) {
-    const t = await j(e);
-    return G(t);
-}
-
 async function j(e) {
     const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(e));
     return new Uint8Array(digest);
@@ -27,13 +20,6 @@ function G(e) {
     }
     return n.join("");
 }
-
-const K = "aes-256-gcm";
-
-async function Y(e) {
-    return crypto.subtle.importKey("raw", e, K, false, ["encrypt", "decrypt"]);
-}
-
 const $ = 32768;
 const Q = {
     N: $,
@@ -60,6 +46,7 @@ async function J(e, t) {
 async function makeKeyHash(e, t) {
     const n = await J(e, t);
     const hash = await j(n);
+    console.log(hash)
     return G(hash);
 }
 
