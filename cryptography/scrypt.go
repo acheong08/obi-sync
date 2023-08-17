@@ -1,9 +1,8 @@
-package main
+package cryptography
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 
 	"golang.org/x/crypto/scrypt"
 )
@@ -34,13 +33,4 @@ func MakeKeyHash(e, t string) (string, error) {
 
 	hash := sha256.Sum256(n)
 	return hex.EncodeToString(hash[:]), nil
-}
-
-func main() {
-	hash, err := MakeKeyHash("ZsSjgKx4yaeBNCFipS)T", "jePEuEPhNsr8zguY3%98")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	fmt.Println(hash)
 }
