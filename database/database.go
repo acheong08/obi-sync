@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/acheong08/obsidian-sync/user"
+
 	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/cryptography"
 	"github.com/acheong08/obsidian-sync/vault"
@@ -89,16 +91,21 @@ func (db *Database) NewUser(email, password, name string) error {
 	_, err = db.DBConnection.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", name, email, hash)
 	return err
 }
-func (db *Database) Login(email, password string) (bool, error) {
+func (db *Database) Login(email, password string) (*user.User, error) {
 	// Get user from database
 	var hash string
-	err := db.DBConnection.QueryRow("SELECT password FROM users WHERE email = ?", email).Scan(&hash)
+	var user user.User
+	err := db.DBConnection.QueryRow("SELECT license, name, password FROM users WHERE email = ?", email).Scan(&user.License, &user.Name, &hash)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	// Compare password hash
 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil, err
+	if err != nil {
+		return nil, err
+	}
+	user.Email = email
+	return &user, nil
 }
 
 func (db *Database) NewVault(name, password, salt, keyhash string) error {
