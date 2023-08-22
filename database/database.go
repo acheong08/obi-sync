@@ -28,14 +28,17 @@ func NewDatabase() *Database {
 			panic(err)
 		}
 		// Create users table
-		db.Exec(`CREATE TABLE users (
+		_, err = db.Exec(`CREATE TABLE users (
 			name TEXT NOT NULL,
 			email TEXT PRIMARY KEY NOT NULL,
 			password TEXT NOT NULL,
-			license TEXT,
+			license TEXT NOT NULL
 			)`)
+		if err != nil {
+			panic(err)
+		}
 		// Create vaults table
-		db.Exec(`CREATE TABLE vaults (
+		_, err = db.Exec(`CREATE TABLE vaults (
 			id TEXT PRIMARY KEY,
 			user_email TEXT NOT NULL,
 			created INTEGER NOT NULL,
@@ -43,8 +46,11 @@ func NewDatabase() *Database {
 			name TEXT NOT NULL,
 			password TEXT NOT NULL,
 			salt TEXT NOT NULL,
-			keyhash TEXT NOT NULL,
+			keyhash TEXT NOT NULL
 		)`)
+		if err != nil {
+			panic(err)
+		}
 		// Create files metadata table
 		_, err = db.Exec(`CREATE TABLE files (
 			vault_id TEXT NOT NULL,
@@ -61,9 +67,14 @@ func NewDatabase() *Database {
 		if err != nil {
 			panic(err)
 		}
-		return &Database{
+		dbConnection := &Database{
 			DBConnection: db,
 		}
+		err = dbConnection.NewUser("example@example.com", "example", "Example User")
+		if err != nil {
+			panic(err)
+		}
+		return dbConnection
 
 	} else {
 		// Connect to the database
@@ -87,7 +98,7 @@ func (db *Database) NewUser(email, password, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.DBConnection.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", name, email, hash)
+	_, err = db.DBConnection.Exec("INSERT INTO users (name, email, password, license) VALUES (?, ?, ?, ?)", name, email, hash, "")
 	return err
 }
 func (db *Database) Login(email, password string) (*user.User, error) {
@@ -107,15 +118,15 @@ func (db *Database) Login(email, password string) (*user.User, error) {
 	return &user, nil
 }
 
-func (db *Database) NewVault(name, userEmail, password, salt, keyhash string) error {
+func (db *Database) NewVault(name, userEmail, password, salt, keyhash string) (*vault.Vault, error) {
 	if keyhash == "" && password == "" {
-		return errors.New("password and keyhash cannot both be empty")
+		return nil, errors.New("password and keyhash cannot both be empty")
 	}
 	if keyhash == "" {
 		var err error
 		keyhash, err = cryptography.MakeKeyHash(password, salt)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	id := uuid.New().String()
@@ -131,7 +142,20 @@ func (db *Database) NewVault(name, userEmail, password, salt, keyhash string) er
 			salt, 
 			keyhash
 		) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, userEmail, created, host, name, password, salt, keyhash)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id, userEmail, created, host, name, password, salt, keyhash)
+	return &vault.Vault{
+		ID:       id,
+		Created:  created,
+		Host:     host,
+		Name:     name,
+		Password: password,
+		Salt:     salt,
+		Size:     0,
+	}, err
+}
+
+func (db *Database) DeleteVault(id, email string) error {
+	_, err := db.DBConnection.Exec("DELETE FROM vaults WHERE id = ? AND user_email = ?", id, email)
 	return err
 }
 

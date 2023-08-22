@@ -1,18 +1,16 @@
 package handlers
 
 import (
-	"errors"
-
-	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/acheong08/obsidian-sync/vault"
 	"github.com/gin-gonic/gin"
-	jwt "github.com/golang-jwt/jwt/v5"
+	password_generator "github.com/sethvargo/go-password/password"
 )
 
 func ListVaults(c *gin.Context) {
 	type request struct {
-		Token string `json:"token"`
+		Token string `json:"token" binding:"required"`
 	}
 	type response struct {
 		Shared []any          `json:"shared"`
@@ -24,7 +22,7 @@ func ListVaults(c *gin.Context) {
 		return
 	}
 
-	email, err := getJwtEmail(req.Token)
+	email, err := utilities.GetJwtEmail(req.Token)
 	if err != nil {
 		// Unauthorized
 		c.JSON(401, gin.H{"error": err.Error()})
@@ -44,20 +42,79 @@ func ListVaults(c *gin.Context) {
 
 }
 
-func getJwtEmail(jwtString string) (string, error) {
-	token, err := jwt.Parse(jwtString, func(token *jwt.Token) (interface{}, error) {
-		return config.Secret, nil
-	})
+func CreateVault(c *gin.Context) {
+	type request struct {
+		KeyHash *string `json:"keyhash"`
+		Name    string  `json:"name" binding:"required"`
+		Salt    *string `json:"salt"`
+		Token   string  `json:"token" binding:"required"`
+	}
+	// Response is vault details
+	var req request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	dbConnection := c.MustGet("db").(*database.Database)
+	email, err := utilities.GetJwtEmail(req.Token)
 	if err != nil {
-		return "", err
+		// Unauthorized
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
 	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", errors.New("invalid token")
+	var password string
+	var salt string
+	var keyHash string
+	// Generate password if keyhash is not provided
+	if req.Salt == nil {
+		password, err = password_generator.Generate(20, 5, 5, false, true)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		salt, err = password_generator.Generate(20, 5, 5, false, true)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		keyHash = ""
+	} else {
+		if req.KeyHash != nil {
+			keyHash = *req.KeyHash
+		} else {
+			c.JSON(400, gin.H{"error": "keyhash must be provided if salt is provided"})
+		}
 	}
-	email, ok := claims["email"].(string)
-	if !ok {
-		return "", errors.New("invalid token")
+	vault, err := dbConnection.NewVault(req.Name, email, password, salt, keyHash)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
-	return email, nil
+	c.JSON(200, vault)
+
+}
+
+func DeleteVault(c *gin.Context) {
+	type request struct {
+		Token    string `json:"token" binding:"required"`
+		VaultUID string `json:"vault_uid" binding:"required"`
+	}
+	var req request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	dbConnection := c.MustGet("db").(*database.Database)
+	email, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		// Unauthorized
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+	err = dbConnection.DeleteVault(req.VaultUID, email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{})
 }

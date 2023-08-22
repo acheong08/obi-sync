@@ -8,7 +8,6 @@ import (
 )
 
 func Signin(c *gin.Context) {
-	c.Header("access-control-allow-credentials", "true")
 	type request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
