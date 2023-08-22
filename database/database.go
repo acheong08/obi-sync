@@ -29,16 +29,15 @@ func NewDatabase() *Database {
 		}
 		// Create users table
 		db.Exec(`CREATE TABLE users (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
-			email TEXT NOT NULL, 
+			email TEXT PRIMARY KEY NOT NULL,
 			password TEXT NOT NULL,
 			license TEXT,
 			)`)
 		// Create vaults table
 		db.Exec(`CREATE TABLE vaults (
 			id TEXT PRIMARY KEY,
-			user_id INTEGER NOT NULL,
+			user_email TEXT NOT NULL,
 			created INTEGER NOT NULL,
 			host TEXT NOT NULL,
 			name TEXT NOT NULL,
@@ -108,7 +107,7 @@ func (db *Database) Login(email, password string) (*user.User, error) {
 	return &user, nil
 }
 
-func (db *Database) NewVault(name, password, salt, keyhash string) error {
+func (db *Database) NewVault(name, userEmail, password, salt, keyhash string) error {
 	if keyhash == "" && password == "" {
 		return errors.New("password and keyhash cannot both be empty")
 	}
@@ -124,6 +123,7 @@ func (db *Database) NewVault(name, password, salt, keyhash string) error {
 	host := config.Host
 	_, err := db.DBConnection.Exec(`INSERT INTO vaults (
 			id,
+			user_email,
 			created,
 			host,
 			name, 
@@ -131,7 +131,7 @@ func (db *Database) NewVault(name, password, salt, keyhash string) error {
 			salt, 
 			keyhash
 		) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, created, host, name, password, salt, keyhash)
+		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, userEmail, created, host, name, password, salt, keyhash)
 	return err
 }
 
@@ -149,8 +149,8 @@ func (db *Database) GetVault(id, keyHash string) (*vault.Vault, error) {
 }
 
 // Size is not included in the response. It should be fetched separately.
-func (db *Database) GetVaults(userID int) ([]*vault.Vault, error) {
-	rows, err := db.DBConnection.Query("SELECT id, created, host, name, password, salt FROM vaults WHERE user_id = ?", userID)
+func (db *Database) GetVaults(userEmail string) ([]*vault.Vault, error) {
+	rows, err := db.DBConnection.Query("SELECT id, created, host, name, password, salt FROM vaults WHERE user_email = ?", userEmail)
 	if err != nil {
 		return nil, err
 	}

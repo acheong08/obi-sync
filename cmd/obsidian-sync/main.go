@@ -18,4 +18,7 @@ func main() {
 	})
 	userGroup := router.Group("/user")
 	userGroup.POST("signin", handlers.Signin)
+
+	vaultGroup := router.Group("/vault")
+	vaultGroup.POST("list", handlers.ListVaults)
 }

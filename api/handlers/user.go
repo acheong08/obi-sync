@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/database"
 	"github.com/gin-gonic/gin"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 func Signin(c *gin.Context) {
@@ -28,11 +30,17 @@ func Signin(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email": userInfo.Email,
+	}).SignedString(config.Secret)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
 	c.JSON(200, response{
 		Email:   userInfo.Email,
 		License: userInfo.License,
 		Name:    userInfo.Name,
-		// TODO: Generate token
+		Token:   token,
 	})
 
 }
