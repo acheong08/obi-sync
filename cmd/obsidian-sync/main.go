@@ -28,6 +28,9 @@ func main() {
 	userGroup := router.Group("/user")
 	userGroup.POST("signin", handlers.Signin)
 
+	subscriptionGroup := router.Group("/subscription")
+	subscriptionGroup.POST("list", handlers.ListSubscriptions)
+
 	vaultGroup := router.Group("/vault")
 	vaultGroup.POST("list", handlers.ListVaults)
 	vaultGroup.POST("create", handlers.CreateVault)
