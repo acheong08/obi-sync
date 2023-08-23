@@ -52,7 +52,11 @@ func WsHandler(c *gin.Context) {
 	ws.WriteJSON(gin.H{"res": "ok"})
 	if connectionInfo.Initial {
 		if connectionInfo.Version != connectedVault.Version {
-			vaultFiles := vault.GetVaultFiles(connectedVault.ID)
+			vaultFiles, err := vault.GetVaultFiles(connectedVault.ID)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
 			for _, file := range vaultFiles {
 				if !file.Deleted {
 					ws.WriteJSON(gin.H{

@@ -1,82 +1,79 @@
 package vault
 
 import (
-	"encoding/gob"
-	"fmt"
+	"database/sql"
 	"log"
-	"os"
-	"sync"
+
+	_ "modernc.org/sqlite"
 )
 
+var db *sql.DB
+
 func init() {
-	// Make data directory if it doesn't exist
-	if _, err := os.Stat("data"); os.IsNotExist(err) {
-		os.Mkdir("data", 0755)
-	}
-	path := "data/files_metadata.gob"
-	file, err := os.Open(path)
+	var err error
+	db, err = sql.Open("sqlite", "vault.db")
 	if err != nil {
-		log.Println("Could not open file", path) // A new file will be made
-		return
+		log.Fatal(err)
 	}
-	decoder := gob.NewDecoder(file)
-	err = decoder.Decode(&files_metadata)
+
+	// Create tables if they don't exist
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS file_metadata (
+			uid INTEGER PRIMARY KEY,
+			vault_id TEXT,
+			path TEXT,
+			hash TEXT,
+			size INTEGER,
+			created INTEGER,
+			modified INTEGER,
+			folder INTEGER,
+			deleted INTEGER,
+		);
+		
+		CREATE TABLE IF NOT EXISTS file (
+			path TEXT PRIMARY KEY,
+			data BLOB
+		);
+	`)
 	if err != nil {
-		log.Println("Could not decode file", path)
-		return
+		log.Fatal(err)
 	}
 }
 
-type filesMetadataMutex struct {
-	FilesMetadata map[string][]FileMetadata
-	Mutex         sync.Mutex
-}
-
-var files_metadata = &filesMetadataMutex{}
-
-func GetVaultFiles(vaultID string) []FileMetadata {
-	files_metadata.Mutex.Lock()
-	defer files_metadata.Mutex.Unlock()
-	return files_metadata.FilesMetadata[vaultID]
-}
-
-func InsertVaultFile(vaultID string, file FileMetadata) {
-	files_metadata.Mutex.Lock()
-	defer files_metadata.Mutex.Unlock()
-	files_metadata.FilesMetadata[vaultID] = append(files_metadata.FilesMetadata[vaultID], file)
-}
-
-func WriteVaultFiles() error {
-	// Write files_metadata to gob
-	path := "data/files_metadata.gob"
-	file, err := os.Create(path)
+func GetVaultFiles(vaultID string) ([]FileMetadata, error) {
+	rows, err := db.Query("SELECT * FROM file_metadata WHERE vault_id = ?", vaultID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	encoder := gob.NewEncoder(file)
-	err = encoder.Encode(files_metadata)
+	defer rows.Close()
+	var files []FileMetadata
+	for rows.Next() {
+		var file FileMetadata
+		err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+	return files, nil
+}
+
+func InsertVaultFile(vaultID string, file FileMetadata) error {
+	_, err := db.Exec("INSERT INTO file_metadata (vault_id, path, hash, size, created, modified, folder, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vaultID, file.Path, file.Hash, file.Size, file.Created, file.Modified, file.Folder, file.Deleted)
 	return err
 }
 
 func GetFile(path string) (*File, error) {
-	path = fmt.Sprintf("data/%s.gob", path)
-	file, err := os.Open(path)
+	var file File
+	err := db.QueryRow("SELECT data FROM file WHERE path = ?", path).Scan(&file.Data)
 	if err != nil {
 		return nil, err
 	}
-	data := &File{}
-	decoder := gob.NewDecoder(file)
-	err = decoder.Decode(data)
-	return data, err
+	return &file, nil
 }
 
 func PushFile(path string, data []byte) error {
-	path = fmt.Sprintf("data/%s.gob", path)
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	encoder := gob.NewEncoder(file)
-	err = encoder.Encode(&File{Data: data})
+	// Overwrite file if it already exists
+	_, err := db.Exec("INSERT INTO file (path, data) VALUES (?, ?) ON CONFLICT(path) DO UPDATE SET data = ?", path, data, data)
 	return err
 }
