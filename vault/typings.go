@@ -23,7 +23,3 @@ type FileMetadata struct {
 	Deleted  bool   `json:"deleted"`
 	UID      string `json:"uid"`
 }
-
-type File struct {
-	Data []byte `json:"data"`
-}

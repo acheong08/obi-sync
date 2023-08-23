@@ -40,7 +40,7 @@ func init() {
 	}
 }
 
-func GetVaultFiles(vaultID string) ([]FileMetadata, error) {
+func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
 	rows, err := db.Query("SELECT * FROM file_metadata WHERE vault_id = ?", vaultID)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,16 @@ func GetVaultFiles(vaultID string) ([]FileMetadata, error) {
 		}
 		files = append(files, file)
 	}
-	return files, nil
+	return &files, nil
+}
+
+func GetVaultFile(uid int) (*FileMetadata, error) {
+	var file FileMetadata
+	err := db.QueryRow("SELECT * FROM file_metadata WHERE uid = ?", uid).Scan(&file.UID, &file.Path, &file.Hash, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+	if err != nil {
+		return nil, err
+	}
+	return &file, nil
 }
 
 func InsertVaultFile(vaultID string, file FileMetadata) error {
@@ -63,16 +72,16 @@ func InsertVaultFile(vaultID string, file FileMetadata) error {
 	return err
 }
 
-func GetFile(path string) (*File, error) {
-	var file File
-	err := db.QueryRow("SELECT data FROM file WHERE path = ?", path).Scan(&file.Data)
+func GetFile(path string) (*[]byte, error) {
+	var file []byte
+	err := db.QueryRow("SELECT data FROM file WHERE path = ?", path).Scan(&file)
 	if err != nil {
 		return nil, err
 	}
 	return &file, nil
 }
 
-func PushFile(path string, data []byte) error {
+func PushFile(path string, data *[]byte) error {
 	// Overwrite file if it already exists
 	_, err := db.Exec("INSERT INTO file (path, data) VALUES (?, ?) ON CONFLICT(path) DO UPDATE SET data = ?", path, data, data)
 	return err

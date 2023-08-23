@@ -11,7 +11,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	// ReadBufferSize:  1024,
+	// WriteBufferSize: 1024,
+}
 
 func getMsg(ws *websocket.Conn) ([]byte, error) {
 	msgType, msg, err := ws.ReadMessage()
@@ -57,7 +60,7 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			for _, file := range vaultFiles {
+			for _, file := range *vaultFiles {
 				if !file.Deleted {
 					ws.WriteJSON(gin.H{
 						"op": "push", "path": file.Path,
@@ -69,6 +72,8 @@ func WsHandler(c *gin.Context) {
 		}
 	}
 	ws.WriteJSON(gin.H{"op": "ready", "version": connectedVault.Version})
+
+	connectedVault.Version += 1
 
 	// Inifinite loop to handle messages
 	type message struct {
@@ -94,8 +99,47 @@ func WsHandler(c *gin.Context) {
 				"size":  connectedVault.Size,
 				"limit": 10737418240,
 			})
+		case "pull":
+			var pull pullRequest
+			err = json.Unmarshal(msg, &pull)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			fileMetadata, fileData, err := pullHandler(pull.UID)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			ws.WriteJSON(gin.H{
+				"hash": fileMetadata.Hash, "size": len(*fileData), "pieces": 1,
+				// Pieces is the number of 1KB pieces the file is split into
+				// "pieces": math.Ceil(float64(len(*fileData)) / 1024),
+			})
+			// Send file data in 1KB pieces
+			// for i := 0; i < len(*fileData); i += 1024 {
+			// 	ws.WriteMessage(websocket.BinaryMessage, (*fileData)[i:int(math.Min(float64(i+1024), float64(len(*fileData))))])
+			// }
+			ws.WriteMessage(websocket.BinaryMessage, *fileData)
 		}
 	}
+
+}
+
+type pullRequest struct {
+	UID int `json:"uid" binding:"required"`
+}
+
+func pullHandler(uid int) (*vault.FileMetadata, *[]byte, error) {
+	metadata, err := vault.GetVaultFile(uid)
+	if err != nil {
+		return nil, nil, err
+	}
+	data, err := vault.GetFile(metadata.Path)
+	if err != nil {
+		return nil, nil, err
+	}
+	return metadata, data, nil
 
 }
 
