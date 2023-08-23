@@ -14,12 +14,13 @@ type Vault struct {
 }
 
 type FileMetadata struct {
-	Path     string `json:"path"`
-	Hash     string `json:"hash"`
-	Size     int64  `json:"size"`
-	Created  int64  `json:"ctime"`
-	Modified int64  `json:"mtime"`
-	Folder   bool   `json:"folder"`
-	Deleted  bool   `json:"deleted"`
-	UID      string `json:"uid"`
+	Path      string `json:"path"`
+	Hash      string `json:"hash"`
+	Extension string `json:"extension"`
+	Size      int64  `json:"size"`
+	Created   int64  `json:"ctime"`
+	Modified  int64  `json:"mtime"`
+	Folder    bool   `json:"folder"`
+	Deleted   bool   `json:"deleted"`
+	UID       string `json:"uid"`
 }

@@ -19,15 +19,17 @@ func init() {
 	// Create tables if they don't exist
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS file_metadata (
-			uid INTEGER PRIMARY KEY,
+			uid INTEGER PRIMARY KEY AUTOINCREMENT,
 			vault_id TEXT,
 			path TEXT,
 			hash TEXT,
+			extension TEXT,
 			size INTEGER,
 			created INTEGER,
 			modified INTEGER,
 			folder INTEGER,
 			deleted INTEGER,
+			UNIQUE (vault_id, path)
 		);
 		
 		CREATE TABLE IF NOT EXISTS file (
@@ -49,7 +51,7 @@ func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
 	var files []FileMetadata
 	for rows.Next() {
 		var file FileMetadata
-		err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+		err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
 		if err != nil {
 			return nil, err
 		}
@@ -60,16 +62,29 @@ func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
 
 func GetVaultFile(uid int) (*FileMetadata, error) {
 	var file FileMetadata
-	err := db.QueryRow("SELECT * FROM file_metadata WHERE uid = ?", uid).Scan(&file.UID, &file.Path, &file.Hash, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+	err := db.QueryRow("SELECT * FROM file_metadata WHERE uid = ?", uid).Scan(&file.UID, &file.Path, &file.Hash, file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
 	if err != nil {
 		return nil, err
 	}
 	return &file, nil
 }
 
-func InsertVaultFile(vaultID string, file FileMetadata) error {
-	_, err := db.Exec("INSERT INTO file_metadata (vault_id, path, hash, size, created, modified, folder, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vaultID, file.Path, file.Hash, file.Size, file.Created, file.Modified, file.Folder, file.Deleted)
-	return err
+func InsertVaultFile(vaultID string, file FileMetadata) (int64, error) {
+	result, err := db.Exec(`INSERT INTO file_metadata (
+		vault_id, path, hash, extension, size, created, modified, folder, deleted) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		vaultID, file.Path, file.Hash, file.Extension, file.Size, file.Created,
+		file.Modified, file.Folder, file.Deleted)
+	if err != nil {
+		return 0, err
+	}
+
+	lastInsertID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return lastInsertID, nil
 }
 
 func GetFile(path string) (*[]byte, error) {

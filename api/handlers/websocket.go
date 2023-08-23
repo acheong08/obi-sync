@@ -121,6 +121,63 @@ func WsHandler(c *gin.Context) {
 			// 	ws.WriteMessage(websocket.BinaryMessage, (*fileData)[i:int(math.Min(float64(i+1024), float64(len(*fileData))))])
 			// }
 			ws.WriteMessage(websocket.BinaryMessage, *fileData)
+		case "push":
+			var metadata struct {
+				UID          int    `json:"uid"`
+				Op           string `json:"op" binding:"required"` // Operation
+				Path         string `json:"path" binding:"required"`
+				Extension    string `json:"extension" binding:"required"`
+				Hash         string `json:"hash" binding:"required"`
+				CreationTime int64  `json:"ctime" binding:"required"`
+				ModifiedTime int64  `json:"mtime" binding:"required"`
+				Folder       bool   `json:"folder" binding:"required"`
+				Deleted      bool   `json:"deleted" binding:"required"`
+				Size         int    `json:"size,omitempty" binding:"required"`
+				Pieces       int    `json:"pieces,omitempty" binding:"required"`
+			}
+			err = json.Unmarshal(msg, &metadata)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			vaultUID, err := vault.InsertVaultFile(connectedVault.ID, vault.FileMetadata{
+				Path:      metadata.Path,
+				Hash:      metadata.Hash,
+				Extension: metadata.Extension,
+				Size:      int64(metadata.Size),
+				Created:   metadata.CreationTime,
+				Modified:  metadata.ModifiedTime,
+				Folder:    metadata.Folder,
+				Deleted:   metadata.Deleted,
+			})
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			var fullBinary []byte
+			for i := 0; i < metadata.Pieces; i++ {
+				ws.WriteJSON(gin.H{"res": "next"})
+				// Read bytes
+				msgType, msg, err := ws.ReadMessage()
+				if err != nil {
+					ws.WriteJSON(gin.H{"error": err.Error()})
+					return
+				}
+				if msgType != websocket.BinaryMessage {
+					ws.WriteJSON(gin.H{"error": "message type must be binary"})
+					return
+				}
+				fullBinary = append(fullBinary, msg...)
+			}
+			err = vault.PushFile(metadata.Path, &fullBinary)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			metadata.UID = int(vaultUID)
+			ws.WriteJSON(metadata)
+			ws.WriteJSON(gin.H{"op": "ok"})
+
 		}
 	}
 
