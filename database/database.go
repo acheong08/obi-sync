@@ -46,6 +46,7 @@ func NewDatabase() *Database {
 			name TEXT NOT NULL,
 			password TEXT NOT NULL,
 			salt TEXT NOT NULL,
+			version INTEGER NOT NULL DEFAULT 0,
 			keyhash TEXT NOT NULL
 		)`)
 		if err != nil {
@@ -162,7 +163,7 @@ func (db *Database) DeleteVault(id, email string) error {
 func (db *Database) GetVault(id, keyHash string) (*vault.Vault, error) {
 	vault := &vault.Vault{}
 	var dbKeyHash string
-	err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(&vault.ID, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt, &dbKeyHash)
+	err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(&vault.ID, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt, &vault.Version, &dbKeyHash)
 	if err != nil {
 		return nil, err
 	}

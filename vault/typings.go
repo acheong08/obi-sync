@@ -8,5 +8,22 @@ type Vault struct {
 	Password string `json:"password"`
 	Salt     string `json:"salt"`
 	Size     int64  `json:"size"`
+	// Not part of JSON
+	Version int `json:"-"`
 	// KeyHash  string `json:"keyhash"`
+}
+
+type FileMetadata struct {
+	Path     string `json:"path"`
+	Hash     string `json:"hash"`
+	Size     int64  `json:"size"`
+	Created  int64  `json:"ctime"`
+	Modified int64  `json:"mtime"`
+	Folder   bool   `json:"folder"`
+	Deleted  bool   `json:"deleted"`
+	UID      string `json:"uid"`
+}
+
+type File struct {
+	Data []byte `json:"data"`
 }
