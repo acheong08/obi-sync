@@ -42,8 +42,17 @@ func init() {
 	}
 }
 
+func GetVaultSize(vaultID string) (int64, error) {
+	var size int64
+	err := db.QueryRow("SELECT SUM(size) FROM file_metadata WHERE vault_id = ?", vaultID).Scan(&size)
+	if err != nil {
+		return 0, err
+	}
+	return size, nil
+}
+
 func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
-	rows, err := db.Query("SELECT * FROM file_metadata WHERE vault_id = ?", vaultID)
+	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM file_metadata WHERE vault_id = ?", vaultID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +71,8 @@ func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
 
 func GetVaultFile(uid int) (*FileMetadata, error) {
 	var file FileMetadata
-	err := db.QueryRow("SELECT * FROM file_metadata WHERE uid = ?", uid).Scan(&file.UID, &file.Path, &file.Hash, file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+	err := db.QueryRow("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM file_metadata WHERE uid = ?",
+		uid).Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +80,7 @@ func GetVaultFile(uid int) (*FileMetadata, error) {
 }
 
 func InsertVaultFile(vaultID string, file FileMetadata) (int64, error) {
-	result, err := db.Exec(`INSERT INTO file_metadata (
+	result, err := db.Exec(`INSERT OR REPLACE INTO file_metadata (
 		vault_id, path, hash, extension, size, created, modified, folder, deleted) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		vaultID, file.Path, file.Hash, file.Extension, file.Size, file.Created,
@@ -79,12 +89,11 @@ func InsertVaultFile(vaultID string, file FileMetadata) (int64, error) {
 		return 0, err
 	}
 
+	// In SQLite, the result of the INSERT OR REPLACE operation will return the row ID
+	// of the inserted/updated record.
 	lastInsertID, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
 
-	return lastInsertID, nil
+	return lastInsertID, err
 }
 
 func GetFile(path string) (*[]byte, error) {
@@ -98,6 +107,6 @@ func GetFile(path string) (*[]byte, error) {
 
 func PushFile(path string, data *[]byte) error {
 	// Overwrite file if it already exists
-	_, err := db.Exec("INSERT INTO file (path, data) VALUES (?, ?) ON CONFLICT(path) DO UPDATE SET data = ?", path, data, data)
+	_, err := db.Exec("INSERT INTO file (path, data) VALUES ($1, $2) ON CONFLICT(path) DO UPDATE SET data = $2", path, *data)
 	return err
 }

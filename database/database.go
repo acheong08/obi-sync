@@ -163,7 +163,9 @@ func (db *Database) DeleteVault(id, email string) error {
 func (db *Database) GetVault(id, keyHash string) (*vault.Vault, error) {
 	vault := &vault.Vault{}
 	var dbKeyHash string
-	err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(&vault.ID, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt, &vault.Version, &dbKeyHash)
+	err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(
+		&vault.ID, &vault.UserEmail, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt,
+		&vault.Version, &dbKeyHash)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +173,11 @@ func (db *Database) GetVault(id, keyHash string) (*vault.Vault, error) {
 		return nil, errors.New("invalid keyhash")
 	}
 	return vault, nil
+}
+
+func (db *Database) BumpVaultVersion(id string) error {
+	_, err := db.DBConnection.Exec("UPDATE vaults SET version = version + 1 WHERE id = ?", id)
+	return err
 }
 
 // Size is not included in the response. It should be fetched separately.

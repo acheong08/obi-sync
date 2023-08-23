@@ -15,6 +15,7 @@ func main() {
 		c.Header("access-control-allow-credentials", "true")
 		// Allow all headers
 		c.Header("access-control-allow-headers", "*")
+		c.Header("access-control-allow-headers", "content-type")
 
 		// Add database connection to context
 		c.Set("db", dbConnection)
@@ -35,6 +36,8 @@ func main() {
 	vaultGroup.POST("list", handlers.ListVaults)
 	vaultGroup.POST("create", handlers.CreateVault)
 	vaultGroup.POST("delete", handlers.DeleteVault)
+
+	router.GET("/ws", handlers.WsHandler)
 
 	router.Run(":3000")
 }

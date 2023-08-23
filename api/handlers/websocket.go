@@ -3,6 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log"
+	"net/http"
+	"strconv"
 
 	"github.com/acheong08/obsidian-sync/database"
 	"github.com/acheong08/obsidian-sync/utilities"
@@ -14,6 +17,9 @@ import (
 var upgrader = websocket.Upgrader{
 	// ReadBufferSize:  1024,
 	// WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func getMsg(ws *websocket.Conn) ([]byte, error) {
@@ -31,6 +37,7 @@ func WsHandler(c *gin.Context) {
 	// Upgrade protocol to websocket
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(500, gin.H{
 			"message": "error upgrading to websocket",
 		})
@@ -54,7 +61,24 @@ func WsHandler(c *gin.Context) {
 	// No errors: ok response
 	ws.WriteJSON(gin.H{"res": "ok"})
 	if connectionInfo.Initial {
-		if connectionInfo.Version != connectedVault.Version {
+		var version int
+		// connectionInfo.Version is an interface. Check what type it is and convert to int
+		switch connectionInfo.Version.(type) {
+		case string:
+			version, err = strconv.Atoi(connectionInfo.Version.(string))
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+		case int:
+			version = connectionInfo.Version.(int)
+
+		}
+		if err != nil {
+			ws.WriteJSON(gin.H{"error": err.Error()})
+			return
+		}
+		if connectedVault.Version != version {
 			vaultFiles, err := vault.GetVaultFiles(connectedVault.ID)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
@@ -73,7 +97,8 @@ func WsHandler(c *gin.Context) {
 	}
 	ws.WriteJSON(gin.H{"op": "ready", "version": connectedVault.Version})
 
-	connectedVault.Version += 1
+	dbConnection := c.MustGet("db").(*database.Database)
+	dbConnection.BumpVaultVersion(connectedVault.ID)
 
 	// Inifinite loop to handle messages
 	type message struct {
@@ -94,9 +119,14 @@ func WsHandler(c *gin.Context) {
 		}
 		switch m.Op {
 		case "size":
+			size, err := vault.GetVaultSize(connectedVault.ID)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
 			ws.WriteJSON(gin.H{
 				"res":   "ok",
-				"size":  connectedVault.Size,
+				"size":  size,
 				"limit": 10737418240,
 			})
 		case "pull":
@@ -106,7 +136,14 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			fileMetadata, fileData, err := pullHandler(pull.UID)
+			var uid int
+			switch pull.UID.(type) {
+			case string:
+				uid, _ = strconv.Atoi(pull.UID.(string))
+			case int:
+				uid = pull.UID.(int)
+			}
+			fileMetadata, fileData, err := pullHandler(uid)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -177,14 +214,15 @@ func WsHandler(c *gin.Context) {
 			metadata.UID = int(vaultUID)
 			ws.WriteJSON(metadata)
 			ws.WriteJSON(gin.H{"op": "ok"})
-
+		case "pong":
+			ws.WriteJSON(gin.H{"op": "pong"})
 		}
 	}
 
 }
 
 type pullRequest struct {
-	UID int `json:"uid" binding:"required"`
+	UID any `json:"uid" binding:"required"`
 }
 
 func pullHandler(uid int) (*vault.FileMetadata, *[]byte, error) {
@@ -205,7 +243,7 @@ type initializationRequest struct {
 	Token   string `json:"token" binding:"required"`
 	Id      string `json:"id" binding:"required"`      // Vault ID
 	KeyHash string `json:"keyhash" binding:"required"` // Hash of password & salt
-	Version int    `json:"version" binding:"required"`
+	Version any    `json:"version" binding:"required"`
 	Initial bool   `json:"initial" binding:"required"`
 	Device  string `json:"device" binding:"required"`
 }
