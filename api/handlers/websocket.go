@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -37,10 +36,6 @@ func WsHandler(c *gin.Context) {
 	// Upgrade protocol to websocket
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Println(err.Error())
-		c.JSON(500, gin.H{
-			"message": "error upgrading to websocket",
-		})
 		return
 	}
 	defer ws.Close()
