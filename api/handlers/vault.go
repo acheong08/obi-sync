@@ -118,3 +118,47 @@ func DeleteVault(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{})
 }
+
+func AccessVault(c *gin.Context) {
+	type request struct {
+		Host     string `json:"host" binding:"required"`
+		KeyHash  string `json:"keyhash" binding:"required"`
+		Token    string `json:"token" binding:"required"`
+		VaultUID string `json:"vault_uid" binding:"required"`
+	}
+	var req request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	dbConnection := c.MustGet("db").(*database.Database)
+	email, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		// Unauthorized
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+	vault, err := dbConnection.GetVault(req.VaultUID, req.KeyHash)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	if vault.UserEmail != email {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+	// Get user details
+	user, err := dbConnection.UserInfo(email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"allowed": true,
+		"email":   email,
+		"name":    user.Name,
+		"useruid": "b094fc51bf40b9ddb9ff43d4aadfa962", // Not necessary...
+	})
+
+}

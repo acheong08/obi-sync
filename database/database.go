@@ -102,6 +102,18 @@ func (db *Database) NewUser(email, password, name string) error {
 	_, err = db.DBConnection.Exec("INSERT INTO users (name, email, password, license) VALUES (?, ?, ?, ?)", name, email, hash, "")
 	return err
 }
+func (db *Database) UserInfo(email string) (*user.User, error) {
+	var name string
+	var license string
+	err := db.DBConnection.QueryRow("SELECT name, license FROM users WHERE email = ?", email).Scan(&name, &license)
+	if err != nil {
+		return nil, err
+	}
+	return &user.User{
+		Name:    name,
+		License: license,
+	}, nil
+}
 func (db *Database) Login(email, password string) (*user.User, error) {
 	// Get user from database
 	var hash string
