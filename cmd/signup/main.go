@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 
 	"github.com/acheong08/obsidian-sync/database"
@@ -29,6 +30,12 @@ func main() {
 	}
 	db := database.NewDatabase()
 	defer db.DBConnection.Close()
+
+	// Strip newline characters
+	name = strings.Trim(name, "\n")
+	email = strings.Trim(email, "\n")
+	password = []byte(strings.Trim(string(password), "\n"))
+
 	err = db.NewUser(email, string(password), name)
 	if err != nil {
 		panic(err)
