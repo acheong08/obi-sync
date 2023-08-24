@@ -42,7 +42,7 @@ func main() {
 	vaultGroup.POST("create", handlers.CreateVault)
 	vaultGroup.POST("delete", handlers.DeleteVault)
 
-	router.GET("/ws", handlers.WsHandler)
+	router.GET("/", handlers.WsHandler)
 
 	go router.Run(":3000")
 
