@@ -214,7 +214,7 @@ func WsHandler(c *gin.Context) {
 			metadata.UID = int(vaultUID)
 			ws.WriteJSON(metadata)
 			ws.WriteJSON(gin.H{"op": "ok"})
-		case "pong":
+		case "ping":
 			ws.WriteJSON(gin.H{"op": "pong"})
 		}
 	}
