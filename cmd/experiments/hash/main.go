@@ -37,7 +37,7 @@ func MakeKeyHash(e, t string) (string, error) {
 }
 
 func main() {
-	hash, err := MakeKeyHash("ZsSjgKx4yaeBNCFipS)T", "jePEuEPhNsr8zguY3%98")
+	hash, err := MakeKeyHash("ZsSjgKx4yaeBNCFipS)", "jePEuEPhNsr8zguY3%98")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
