@@ -44,7 +44,7 @@ func main() {
 
 	router.GET("/", handlers.WsHandler)
 
-	go router.Run(":3000")
+	go router.Run("127.0.0.1:3000")
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	calls := make(chan os.Signal, 1)
