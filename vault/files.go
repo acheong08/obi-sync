@@ -100,6 +100,11 @@ func InsertVaultFile(vaultID string, file FileMetadata) (int64, error) {
 	return lastInsertID, err
 }
 
+func DeleteVaultFile(uid int) error {
+	_, err := db.Exec("DELETE FROM file_metadata WHERE uid = ?", uid)
+	return err
+}
+
 func GetFile(path string) (*[]byte, error) {
 	var file []byte
 	err := db.QueryRow("SELECT data FROM file WHERE path = ?", path).Scan(&file)

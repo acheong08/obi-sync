@@ -172,16 +172,22 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			vaultUID, err := vault.InsertVaultFile(connectedVault.ID, vault.FileMetadata{
-				Path:      metadata.Path,
-				Hash:      metadata.Hash,
-				Extension: metadata.Extension,
-				Size:      int64(metadata.Size),
-				Created:   metadata.CreationTime,
-				Modified:  metadata.ModifiedTime,
-				Folder:    metadata.Folder,
-				Deleted:   metadata.Deleted,
-			})
+			var vaultUID int64
+			if !metadata.Deleted {
+				vaultUID, err = vault.InsertVaultFile(connectedVault.ID, vault.FileMetadata{
+					Path:      metadata.Path,
+					Hash:      metadata.Hash,
+					Extension: metadata.Extension,
+					Size:      int64(metadata.Size),
+					Created:   metadata.CreationTime,
+					Modified:  metadata.ModifiedTime,
+					Folder:    metadata.Folder,
+					Deleted:   metadata.Deleted,
+				})
+			} else {
+				err = vault.DeleteVaultFile(metadata.UID)
+				vaultUID = int64(metadata.UID)
+			}
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
