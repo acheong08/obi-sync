@@ -63,16 +63,15 @@ func CreateVault(c *gin.Context) {
 		return
 	}
 	var password string
-	var salt string
+	salt, err := password_generator.Generate(20, 5, 5, false, true)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
 	var keyHash string
 	// Generate password if keyhash is not provided
 	if req.Salt == "" {
 		password, err = password_generator.Generate(20, 5, 5, false, true)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		salt, err = password_generator.Generate(20, 5, 5, false, true)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
