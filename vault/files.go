@@ -43,12 +43,16 @@ func init() {
 }
 
 func GetVaultSize(vaultID string) (int64, error) {
-	var size int64
-	err := db.QueryRow("SELECT SUM(size) FROM file_metadata WHERE vault_id = ?", vaultID).Scan(&size)
+	var size sql.NullInt64
+	err := db.QueryRow("SELECT COALESCE(SUM(size), 0) FROM file_metadata WHERE vault_id = ?", vaultID).Scan(&size)
 	if err != nil {
+		log.Println(err.Error())
 		return 0, err
 	}
-	return size, nil
+	if size.Valid {
+		return size.Int64, nil
+	}
+	return 0, nil
 }
 
 func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
