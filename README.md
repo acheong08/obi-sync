@@ -1,7 +1,7 @@
 # Obsidian Sync
 
 > [!WARNING]
-> This is an experimental proof of concept. It was written hastily without knowledge of the real internal mechanisms. Expect a thousand bugs and inefficiencies
+> This is an experimental proof of concept. It was written hastily without knowledge of the real internal mechanisms. Expect a thousand bugs and inefficiencies. This is an incomplete reproduction of the server. Many features aren't supported yet. I'm not responsible for any data loss or corruption. Use at your own risk.
 
 > [!NOTE]
 > If you have the time and energy, feel free to help out with PRs or suggestions.
