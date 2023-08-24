@@ -6,6 +6,15 @@
 > [!NOTE]
 > If you have the time and energy, feel free to help out with PRs or suggestions.
 
+## Why
+
+I can't afford the subscription. Thus, this was made without observing the network requests since that would require an account...
+
+## To do
+- File recovery
+- Snapshots
+- File History
+
 ## Setup
 
 - `git clone https://github.com/acheong08/obsidian-sync`
