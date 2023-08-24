@@ -7,15 +7,21 @@
 > If you have the time and energy, feel free to help out with PRs or suggestions.
 
 ## Setup
+
 - `git clone https://github.com/acheong08/obsidian-sync`
 - `cd obsidian-sync`
 - `export HOST=<YOUR DOMAIN NAME>`
 - `go run cmd/obsidian-sync/main.go`
 - Use nginx or cloudflare to proxy & handle TLS/SSL
 
-Signup is currently manual. You edit the database yourself. I will add a tool *soon™*
+~~Signup is currently manual. You edit the database yourself. I will add a tool _soon™_~~
+
+## Adding a new user
+
+`go run cmd/signup/main.go`
 
 ## Usage
+
 As ObsidianMD is written with Electron, you can unzip the resource pack and modify it to suite your needs
 
 - Download [Obsidian](https://github.com/obsidianmd/obsidian-releases/releases/)
