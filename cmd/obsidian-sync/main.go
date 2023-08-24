@@ -1,6 +1,11 @@
 package main
 
 import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/acheong08/obsidian-sync/api/handlers"
 	"github.com/acheong08/obsidian-sync/database"
 	gin "github.com/gin-gonic/gin"
@@ -39,5 +44,17 @@ func main() {
 
 	router.GET("/ws", handlers.WsHandler)
 
-	router.Run(":3000")
+	go router.Run(":3000")
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	calls := make(chan os.Signal, 1)
+	signal.Notify(calls, os.Interrupt, syscall.SIGTERM)
+	<-calls
+
+	log.Println("Shutting down server...")
+	err := dbConnection.DBConnection.Close()
+	if err != nil {
+		panic(err)
+	}
+
 }
