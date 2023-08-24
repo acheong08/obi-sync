@@ -29,7 +29,25 @@ Workflow:
 - `go run cmd/obsidian-sync/main.go`
 - Use nginx or cloudflare to proxy & handle TLS/SSL
 
-~~Signup is currently manual. You edit the database yourself. I will add a tool _soon™_~~
+### Nginx configuration
+```nginx
+map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+}
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	location / {
+		proxy_http_version 1.1;
+            	proxy_set_header Upgrade $http_upgrade;
+            	proxy_set_header Connection $connection_upgrade;
+           	proxy_set_header Host $host;
+		proxy_pass http://127.0.0.1:3000/;
+	}
+	server_name _;
+}
+```
 
 ## Adding a new user
 
