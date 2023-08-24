@@ -7,13 +7,17 @@ import (
 )
 
 const DBPath = "database.db"
-const Host = "localhost:3000/ws"
+
+var Host = "localhost:3000/ws"
 
 var Secret []byte
 
 // Generate a random password, hash it, and store it in the Secret variable & a file
 // Load secret.gob if it exists
 func init() {
+	if os.Getenv("HOST") != "" {
+		Host = os.Getenv("HOST")
+	}
 	if _, err := os.Stat("secret.gob"); err != nil {
 		Secret = make([]byte, 64)
 		rand.Read(Secret)
