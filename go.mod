@@ -3,6 +3,7 @@ module github.com/acheong08/obsidian-sync
 go 1.20
 
 require (
+	github.com/acheong08/endless v0.0.0-20230615162514-90545c7793fd
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.3.0

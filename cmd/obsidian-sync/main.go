@@ -1,11 +1,7 @@
 package main
 
 import (
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-
+	"github.com/acheong08/endless"
 	"github.com/acheong08/obsidian-sync/api/handlers"
 	"github.com/acheong08/obsidian-sync/database"
 	gin "github.com/gin-gonic/gin"
@@ -13,6 +9,7 @@ import (
 
 func main() {
 	dbConnection := database.NewDatabase()
+	defer dbConnection.Close()
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
 		c.Header("access-control-allow-origin", "app://obsidian.md")
@@ -44,17 +41,6 @@ func main() {
 
 	router.GET("/", handlers.WsHandler)
 
-	go router.Run("127.0.0.1:3000")
-
-	// Wait for interrupt signal to gracefully shutdown the server with
-	calls := make(chan os.Signal, 1)
-	signal.Notify(calls, os.Interrupt, syscall.SIGTERM)
-	<-calls
-
-	log.Println("Shutting down server...")
-	err := dbConnection.DBConnection.Close()
-	if err != nil {
-		panic(err)
-	}
+	endless.ListenAndServe("127.0.0.1:3000", router)
 
 }
