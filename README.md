@@ -13,6 +13,8 @@
 - `go run cmd/obsidian-sync/main.go`
 - Use nginx or cloudflare to proxy & handle TLS/SSL
 
+Signup is currently manual. You edit the database yourself. I will add a tool *soon™*
+
 ## Usage
 As ObsidianMD is written with Electron, you can unzip the resource pack and modify it to suite your needs
 
