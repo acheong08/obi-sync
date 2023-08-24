@@ -12,8 +12,8 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter username: ")
-	username, err := reader.ReadString('\n')
+	fmt.Print("Enter your full name: ")
+	name, err := reader.ReadString('\n')
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +29,7 @@ func main() {
 	}
 	db := database.NewDatabase()
 	defer db.DBConnection.Close()
-	err = db.NewUser(email, string(password), username)
+	err = db.NewUser(email, string(password), name)
 	if err != nil {
 		panic(err)
 	}
