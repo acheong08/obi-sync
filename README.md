@@ -8,7 +8,13 @@
 
 ## Why
 
-I can't afford the subscription. Thus, this was made without observing the network requests since that would require an account...
+I can't afford the subscription. Thus, this was made without observing the network responses since that would require an account...
+
+Workflow:
+- Look at JS
+- Make (failing) request
+- Add code to handle the request
+- Repeat
 
 ## To do
 - File recovery
