@@ -44,10 +44,10 @@ func ListVaults(c *gin.Context) {
 
 func CreateVault(c *gin.Context) {
 	type request struct {
-		KeyHash *string `json:"keyhash"`
-		Name    string  `json:"name" binding:"required"`
-		Salt    *string `json:"salt"`
-		Token   string  `json:"token" binding:"required"`
+		KeyHash string `json:"keyhash"`
+		Name    string `json:"name" binding:"required"`
+		Salt    string `json:"salt"`
+		Token   string `json:"token" binding:"required"`
 	}
 	// Response is vault details
 	var req request
@@ -66,7 +66,7 @@ func CreateVault(c *gin.Context) {
 	var salt string
 	var keyHash string
 	// Generate password if keyhash is not provided
-	if req.Salt == nil {
+	if req.Salt == "" {
 		password, err = password_generator.Generate(20, 5, 5, false, true)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
@@ -79,8 +79,8 @@ func CreateVault(c *gin.Context) {
 		}
 		keyHash = ""
 	} else {
-		if req.KeyHash != nil {
-			keyHash = *req.KeyHash
+		if req.KeyHash != "" {
+			keyHash = req.KeyHash
 		} else {
 			c.JSON(400, gin.H{"error": "keyhash must be provided if salt is provided"})
 		}
