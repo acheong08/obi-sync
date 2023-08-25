@@ -29,7 +29,8 @@ func init() {
 			modified INTEGER,
 			folder INTEGER,
 			deleted INTEGER,
-			data BLOB
+			data BLOB,
+			newest INTEGER NOT NULL DEFAULT 1
 		);
 	`)
 	if err != nil {
@@ -45,13 +46,13 @@ func RestoreFile(uid int) (*File, error) {
 		return nil, err
 	}
 	file.UID = uid
-	// Update file to be not deleted
-	_, err = db.Exec("UPDATE files SET deleted = 0 WHERE uid = ?", uid)
+	// Update file to be not deleted and newest
+	_, err = db.Exec("UPDATE files SET deleted = 0, newest = 1 WHERE uid = ?", uid)
 	if err != nil {
 		return nil, err
 	}
 	// Update files with the same path but not deleted to be deleted
-	_, err = db.Exec("UPDATE files SET deleted = 1 WHERE path = ? AND deleted = 0", file.Path)
+	_, err = db.Exec("UPDATE files SET deleted = 1, newest = 0 WHERE path = ? AND deleted = 0", file.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func GetVaultSize(vaultID string) (int64, error) {
 }
 
 func GetVaultFiles(vaultID string) (*[]File, error) {
-	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE vault_id = ? AND deleted = 0", vaultID)
+	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE vault_id = ? AND deleted = 0 AND newest = 1", vaultID)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,12 @@ func GetDeletedFiles() (any, error) {
 }
 
 func InsertMetadata(vaultID string, file File) (int, error) {
-	result, err := db.Exec(`INSERT OR REPLACE INTO files (
+	// Set previous files with the same path to not be newest
+	_, err := db.Exec("UPDATE files SET newest = 0 WHERE path = ? AND newest = 1", file.Path)
+	if err != nil {
+		return 0, err
+	}
+	result, err := db.Exec(`INSERT INTO files (
 		vault_id, path, hash, extension, size, created, modified, folder, deleted) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		vaultID, file.Path, file.Hash, file.Extension, file.Size, file.Created,
