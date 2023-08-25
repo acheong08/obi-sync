@@ -25,6 +25,7 @@ Workflow:
 
 ## To do
 - Fix bugs
+- Automate patching of electron app
 
 ## Setup
 
