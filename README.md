@@ -57,7 +57,6 @@ As ObsidianMD is written with Electron, you can unzip the resource pack and modi
 - `tar -xvzf obsidian-1.3.7.tar.gz`
 - `cd obsidian-1.3.7/resources`
 - `npx asar extract obsidian.asar obsidian`
-- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/starter.js` (Remember to replace https with http if running on localhost)
-- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/app.js`
+- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/*.js` (Remember to replace https with http if running on localhost)
 - `npx asar pack obsidian obsidian.asar`
 - Run the binary
