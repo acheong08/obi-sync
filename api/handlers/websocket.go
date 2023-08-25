@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/acheong08/obsidian-sync/database"
 	"github.com/acheong08/obsidian-sync/utilities"
@@ -56,19 +55,7 @@ func WsHandler(c *gin.Context) {
 	// No errors: ok response
 	ws.WriteJSON(gin.H{"res": "ok"})
 	if connectionInfo.Initial {
-		var version int
-		// connectionInfo.Version is an interface. Check what type it is and convert to int
-		switch connectionInfo.Version.(type) {
-		case string:
-			version, err = strconv.Atoi(connectionInfo.Version.(string))
-			if err != nil {
-				ws.WriteJSON(gin.H{"error": err.Error()})
-				return
-			}
-		case int:
-			version = connectionInfo.Version.(int)
-
-		}
+		var version int = utilities.ToInt(connectionInfo.Version)
 		if err != nil {
 			ws.WriteJSON(gin.H{"error": err.Error()})
 			return
@@ -132,13 +119,7 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			var uid int
-			switch pull.UID.(type) {
-			case string:
-				uid, _ = strconv.Atoi(pull.UID.(string))
-			case int:
-				uid = pull.UID.(int)
-			}
+			var uid int = utilities.ToInt(pull.UID)
 			file, err := vault.GetFile(uid)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
@@ -245,14 +226,15 @@ func WsHandler(c *gin.Context) {
 			ws.WriteJSON(gin.H{"items": files})
 		case "restore":
 			var restore struct {
-				UID int `json:"uid" binding:"required"`
+				UID any `json:"uid" binding:"required"`
 			}
+			var uid int = utilities.ToInt(restore.UID)
 			err = json.Unmarshal(msg, &restore)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			file, err := vault.RestoreFile(restore.UID)
+			file, err := vault.RestoreFile(uid)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
