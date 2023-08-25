@@ -16,7 +16,7 @@ func main() {
 		c.Header("access-control-allow-methods", "GET, POST, OPTIONS")
 		c.Header("access-control-allow-credentials", "true")
 		// Allow all headers + content-type
-		c.Header("access-control-allow-headers", "*, content-type")
+		c.Header("access-control-allow-headers", "*, content-type, x-request-id")
 		// c.Header("access-control-allow-headers", "content-type")
 
 		// Add database connection to context
