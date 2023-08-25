@@ -80,13 +80,12 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			for _, file := range *vaultFiles {
-				if !file.Deleted {
-					ws.WriteJSON(gin.H{
-						"op": "push", "path": file.Path,
-						"hash": file.Hash, "size": file.Size,
-						"ctime": file.Created, "mtime": file.Modified, "folder": file.Folder,
-						"deleted": file.Deleted, "device": "insignificantv5", "uid": file.UID})
-				}
+				ws.WriteJSON(gin.H{
+					"op": "push", "path": file.Path,
+					"hash": file.Hash, "size": file.Size,
+					"ctime": file.Created, "mtime": file.Modified, "folder": file.Folder,
+					"deleted": file.Deleted, "device": "insignificantv5", "uid": file.UID})
+
 			}
 		}
 	}
@@ -125,7 +124,9 @@ func WsHandler(c *gin.Context) {
 				"limit": 10737418240,
 			})
 		case "pull":
-			var pull pullRequest
+			var pull struct {
+				UID any `json:"uid" binding:"required"`
+			}
 			err = json.Unmarshal(msg, &pull)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
@@ -138,21 +139,17 @@ func WsHandler(c *gin.Context) {
 			case int:
 				uid = pull.UID.(int)
 			}
-			fileMetadata, fileData, err := pullHandler(uid)
+			file, err := vault.GetFile(uid)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
 			ws.WriteJSON(gin.H{
-				"hash": fileMetadata.Hash, "size": len(*fileData), "pieces": 1,
-				// Pieces is the number of 1KB pieces the file is split into
-				// "pieces": math.Ceil(float64(len(*fileData)) / 1024),
+				"hash": file.Hash, "size": len(file.Data), "pieces": 1,
 			})
-			// Send file data in 1KB pieces
-			// for i := 0; i < len(*fileData); i += 1024 {
-			// 	ws.WriteMessage(websocket.BinaryMessage, (*fileData)[i:int(math.Min(float64(i+1024), float64(len(*fileData))))])
-			// }
-			ws.WriteMessage(websocket.BinaryMessage, *fileData)
+			if len(file.Data) != 0 {
+				ws.WriteMessage(websocket.BinaryMessage, file.Data)
+			}
 		case "push":
 			var metadata struct {
 				UID          int    `json:"uid"`
@@ -172,22 +169,16 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			var vaultUID int64
-			if !metadata.Deleted {
-				vaultUID, err = vault.InsertVaultFile(connectedVault.ID, vault.FileMetadata{
-					Path:      metadata.Path,
-					Hash:      metadata.Hash,
-					Extension: metadata.Extension,
-					Size:      int64(metadata.Size),
-					Created:   metadata.CreationTime,
-					Modified:  metadata.ModifiedTime,
-					Folder:    metadata.Folder,
-					Deleted:   metadata.Deleted,
-				})
-			} else {
-				err = vault.DeleteVaultFile(metadata.UID)
-				vaultUID = int64(metadata.UID)
-			}
+			vaultUID, err := vault.InsertMetadata(connectedVault.ID, vault.File{
+				Path:      metadata.Path,
+				Hash:      metadata.Hash,
+				Extension: metadata.Extension,
+				Size:      int64(metadata.Size),
+				Created:   metadata.CreationTime,
+				Modified:  metadata.ModifiedTime,
+				Folder:    metadata.Folder,
+				Deleted:   metadata.Deleted,
+			})
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -207,7 +198,7 @@ func WsHandler(c *gin.Context) {
 				}
 				fullBinary = append(fullBinary, msg...)
 			}
-			err = vault.PushFile(metadata.Path, &fullBinary)
+			err = vault.InsertData(vaultUID, &fullBinary)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -215,27 +206,21 @@ func WsHandler(c *gin.Context) {
 			metadata.UID = int(vaultUID)
 			ws.WriteJSON(metadata)
 			ws.WriteJSON(gin.H{"op": "ok"})
+		case "history":
+			var history struct {
+				Last any    `json:"last"` // I have no idea what this is for
+				Path string `json:"path" binding:"required"`
+			}
+			err = json.Unmarshal(msg, &history)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+
 		case "ping":
 			ws.WriteJSON(gin.H{"op": "pong"})
 		}
 	}
-
-}
-
-type pullRequest struct {
-	UID any `json:"uid" binding:"required"`
-}
-
-func pullHandler(uid int) (*vault.FileMetadata, *[]byte, error) {
-	metadata, err := vault.GetVaultFile(uid)
-	if err != nil {
-		return nil, nil, err
-	}
-	data, err := vault.GetFile(metadata.Path)
-	if err != nil {
-		return nil, nil, err
-	}
-	return metadata, data, nil
 
 }
 

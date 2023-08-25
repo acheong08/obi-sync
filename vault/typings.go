@@ -14,7 +14,7 @@ type Vault struct {
 	// KeyHash  string `json:"keyhash"`
 }
 
-type FileMetadata struct {
+type File struct {
 	Path      string `json:"path"`
 	Hash      string `json:"hash"`
 	Extension string `json:"extension"`
@@ -24,4 +24,5 @@ type FileMetadata struct {
 	Folder    bool   `json:"folder"`
 	Deleted   bool   `json:"deleted"`
 	UID       string `json:"uid"`
+	Data      []byte `json:"-"`
 }

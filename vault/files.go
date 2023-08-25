@@ -18,22 +18,16 @@ func init() {
 
 	// Create tables if they don't exist
 	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS file_metadata (
+		CREATE TABLE IF NOT EXISTS files (
 			uid INTEGER PRIMARY KEY AUTOINCREMENT,
 			vault_id TEXT,
 			path TEXT,
-			hash TEXT,
 			extension TEXT,
 			size INTEGER,
 			created INTEGER,
 			modified INTEGER,
 			folder INTEGER,
 			deleted INTEGER,
-			UNIQUE (vault_id, path)
-		);
-		
-		CREATE TABLE IF NOT EXISTS file (
-			path TEXT PRIMARY KEY,
 			data BLOB
 		);
 	`)
@@ -44,7 +38,7 @@ func init() {
 
 func GetVaultSize(vaultID string) (int64, error) {
 	var size sql.NullInt64
-	err := db.QueryRow("SELECT COALESCE(SUM(size), 0) FROM file_metadata WHERE vault_id = ?", vaultID).Scan(&size)
+	err := db.QueryRow("SELECT COALESCE(SUM(size), 0) FROM files WHERE vault_id = ?", vaultID).Scan(&size)
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err
@@ -55,15 +49,15 @@ func GetVaultSize(vaultID string) (int64, error) {
 	return 0, nil
 }
 
-func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
-	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM file_metadata WHERE vault_id = ?", vaultID)
+func GetVaultFiles(vaultID string) (*[]File, error) {
+	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE vault_id = ? AND deleted = 0", vaultID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var files []FileMetadata
+	var files []File
 	for rows.Next() {
-		var file FileMetadata
+		var file File
 		err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
 		if err != nil {
 			return nil, err
@@ -73,18 +67,33 @@ func GetVaultFiles(vaultID string) (*[]FileMetadata, error) {
 	return &files, nil
 }
 
-func GetVaultFile(uid int) (*FileMetadata, error) {
-	var file FileMetadata
-	err := db.QueryRow("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM file_metadata WHERE uid = ?",
-		uid).Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+func GetFile(uid int) (*File, error) {
+	var file File
+	// Get hash and size
+	err := db.QueryRow("SELECT hash, size FROM files WHERE uid = ?", uid).Scan(&file.Hash, &file.Size)
+	return &file, err
+}
+
+func GetFileHistory(path string) (*[]File, error) {
+	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE path = ? AND deleted = 0", path)
 	if err != nil {
 		return nil, err
 	}
-	return &file, nil
+	defer rows.Close()
+	var files []File
+	for rows.Next() {
+		var file File
+		err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+	return &files, nil
 }
 
-func InsertVaultFile(vaultID string, file FileMetadata) (int64, error) {
-	result, err := db.Exec(`INSERT OR REPLACE INTO file_metadata (
+func InsertMetadata(vaultID string, file File) (int, error) {
+	result, err := db.Exec(`INSERT OR REPLACE INTO files (
 		vault_id, path, hash, extension, size, created, modified, folder, deleted) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		vaultID, file.Path, file.Hash, file.Extension, file.Size, file.Created,
@@ -92,30 +101,27 @@ func InsertVaultFile(vaultID string, file FileMetadata) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-
-	// In SQLite, the result of the INSERT OR REPLACE operation will return the row ID
-	// of the inserted/updated record.
 	lastInsertID, err := result.LastInsertId()
 
-	return lastInsertID, err
+	return int(lastInsertID), err
 }
 
-func DeleteVaultFile(uid int) error {
-	_, err := db.Exec("DELETE FROM file_metadata WHERE uid = ?", uid)
-	return err
-}
-
-func GetFile(path string) (*[]byte, error) {
+func GetFileData(uid int) (*[]byte, error) {
 	var file []byte
-	err := db.QueryRow("SELECT data FROM file WHERE path = ?", path).Scan(&file)
+	err := db.QueryRow("SELECT data FROM files WHERE uid = ?", uid).Scan(&file)
 	if err != nil {
 		return nil, err
 	}
 	return &file, nil
 }
 
-func PushFile(path string, data *[]byte) error {
+func InsertData(uid int, data *[]byte) error {
 	// Overwrite file if it already exists
-	_, err := db.Exec("INSERT INTO file (path, data) VALUES ($1, $2) ON CONFLICT(path) DO UPDATE SET data = $2", path, *data)
+	_, err := db.Exec("INSERT OR REPLACE INTO files (uid, data) VALUES (?, ?)", uid, *data)
 	return err
 }
+
+// func DeleteVaultFile(uid int) error {
+// 	_, err := db.Exec("DELETE FROM files WHERE uid = ?", uid)
+// 	return err
+// }
