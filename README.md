@@ -21,7 +21,7 @@ Workflow:
 ## To do
 - File recovery
 - Snapshots
-- File History
+- ~~File History~~
 
 ## Setup
 
