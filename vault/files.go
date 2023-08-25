@@ -40,7 +40,6 @@ func init() {
 }
 
 func RestoreFile(uid int) (*File, error) {
-	log.Println(uid)
 	// Get file path
 	var file File
 	err := db.QueryRow("SELECT path, hash, extension, size, created, modified, folder, deleted FROM files WHERE uid = ?", uid).Scan(&file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
@@ -53,8 +52,7 @@ func RestoreFile(uid int) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Update files with the same path but not deleted to be deleted
-	_, err = db.Exec("UPDATE files SET deleted = 1, newest = 0 WHERE path = ? AND deleted = 0", file.Path)
+	_, err = db.Exec("UPDATE files SET newest = 0 WHERE path = ? AND deleted = 0", file.Path)
 	if err != nil {
 		return nil, err
 	}
