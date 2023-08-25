@@ -3,6 +3,7 @@ package vault
 import (
 	"database/sql"
 	"log"
+	"strconv"
 
 	_ "modernc.org/sqlite"
 )
@@ -45,7 +46,7 @@ func RestoreFile(uid int) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	file.UID = uid
+	file.UID = strconv.Itoa(uid)
 	// Update file to be not deleted and newest
 	_, err = db.Exec("UPDATE files SET deleted = 0, newest = 1 WHERE uid = ?", uid)
 	if err != nil {
