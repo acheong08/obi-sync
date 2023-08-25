@@ -17,7 +17,7 @@ func main() {
 		c.Header("access-control-allow-credentials", "true")
 		// Allow all headers
 		c.Header("access-control-allow-headers", "*")
-		c.Header("access-control-allow-headers", "content-type")
+		// c.Header("access-control-allow-headers", "content-type")
 
 		// Add database connection to context
 		c.Set("db", dbConnection)
