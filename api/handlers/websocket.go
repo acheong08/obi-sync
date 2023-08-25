@@ -144,8 +144,12 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			var pieces int8 = 0
+			if file.Size != 0 {
+				pieces = 1
+			}
 			ws.WriteJSON(gin.H{
-				"hash": file.Hash, "size": file.Size, "pieces": 1,
+				"hash": file.Hash, "size": file.Size, "pieces": pieces,
 			})
 			if file.Size != 0 {
 				ws.WriteMessage(websocket.BinaryMessage, file.Data)
