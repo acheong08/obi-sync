@@ -228,6 +228,11 @@ func WsHandler(c *gin.Context) {
 			var restore struct {
 				UID any `json:"uid" binding:"required"`
 			}
+			err = json.Unmarshal(msg, &restore)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
 			var uid int = utilities.ToInt(restore.UID)
 			err = json.Unmarshal(msg, &restore)
 			if err != nil {
@@ -240,6 +245,7 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			ws.WriteJSON(file)
+			ws.WriteJSON(gin.H{"op": "ok"})
 		}
 
 	}

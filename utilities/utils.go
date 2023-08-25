@@ -2,6 +2,8 @@ package utilities
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/acheong08/obsidian-sync/config"
@@ -33,12 +35,15 @@ func ToInt(s any) int {
 		var err error
 		n, err = strconv.Atoi(s.(string))
 		if err != nil {
+			log.Println(err.Error())
 			return 0
 		}
 	case int:
 		n = s.(int)
+	case float64:
+		n = int(s.(float64))
 	default:
-		n = 0
+		panic(fmt.Sprintf("ToInt: unsupported type %T", s))
 	}
 	return n
 }

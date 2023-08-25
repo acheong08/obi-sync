@@ -40,6 +40,7 @@ func init() {
 }
 
 func RestoreFile(uid int) (*File, error) {
+	log.Println(uid)
 	// Get file path
 	var file File
 	err := db.QueryRow("SELECT path, hash, extension, size, created, modified, folder, deleted FROM files WHERE uid = ?", uid).Scan(&file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
