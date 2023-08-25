@@ -15,6 +15,8 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 
 ## To do
 - Fix bugs
+- Sharing notes
+- Publish
 - ~~Automate patching of electron app~~ Plugin to override API endpoint [#1](https://github.com/acheong08/rev-obsidian-sync/issues/1)
 
 ## Setup
