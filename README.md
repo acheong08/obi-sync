@@ -25,7 +25,7 @@ Workflow:
 
 ## To do
 - Fix bugs
-- Automate patching of electron app
+- ~~Automate patching of electron app~~ Plugin to override API endpoint #1
 
 ## Setup
 
