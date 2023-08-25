@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 func Signin(c *gin.Context) {
@@ -43,4 +47,39 @@ func Signin(c *gin.Context) {
 		Token:   token,
 	})
 
+}
+
+func UserInfo(c *gin.Context) {
+	var req struct {
+		Token string `json:"token"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	email, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+	dbConnection := c.MustGet("db").(*database.Database)
+	userInfo, err := dbConnection.UserInfo(email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{
+		"uid":     uuid.New().String(),
+		"email":   email,
+		"name":    userInfo.Name,
+		"payment": "",
+		"license": "",
+		"credit":  0,
+		"mfa":     false,
+		"discount": gin.H{
+			"status":    "approved",
+			"expiry_ts": time.Now().UnixMilli() + time.Hour.Milliseconds()*24*365,
+			"type":      "education",
+		},
+	})
 }

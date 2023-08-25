@@ -143,7 +143,7 @@ func (db *Database) NewVault(name, userEmail, password, salt, keyhash string) (*
 		}
 	}
 	id := uuid.New().String()
-	created := time.Now().Unix()
+	created := time.Now().UnixMilli()
 	host := config.Host
 	_, err := db.DBConnection.Exec(`INSERT INTO vaults (
 			id,

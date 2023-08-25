@@ -13,7 +13,7 @@ func ListSubscriptions(c *gin.Context) {
 		"sync": gin.H{
 			"earlybird": false,
 			// Always expires in 1 year
-			"expiry_ts": time.Now().Unix() + (int64(time.Hour) * 24 * 365),
+			"expiry_ts": time.Now().UnixMilli() + time.Hour.Milliseconds()*24*365,
 			"renew":     "",
 		},
 	})
