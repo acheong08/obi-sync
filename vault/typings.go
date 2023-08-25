@@ -15,14 +15,16 @@ type Vault struct {
 }
 
 type File struct {
-	Path      string `json:"path"`
-	Hash      string `json:"hash"`
-	Extension string `json:"extension"`
-	Size      int64  `json:"size"`
-	Created   int64  `json:"ctime"`
-	Modified  int64  `json:"mtime"`
-	Folder    bool   `json:"folder"`
-	Deleted   bool   `json:"deleted"`
-	UID       string `json:"uid"`
-	Data      []byte `json:"-"`
+	Path        string `json:"path"`
+	Hash        string `json:"hash,omitempty"`
+	Extension   string `json:"extension,omitempty"`
+	Size        int64  `json:"size"`
+	Created     int64  `json:"ctime,omitempty"`
+	Modified    int64  `json:"mtime,omitempty"`
+	Timestamp   int64  `json:"ts,omitempty"`
+	RelatedPath string `json:"related_path,omitempty"`
+	Folder      bool   `json:"folder"`
+	Deleted     bool   `json:"deleted"`
+	UID         string `json:"uid"`
+	Data        []byte `json:"-"`
 }

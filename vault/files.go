@@ -76,7 +76,7 @@ func GetFile(uid int) (*File, error) {
 }
 
 func GetFileHistory(path string) (*[]File, error) {
-	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE path = ?", path)
+	rows, err := db.Query("SELECT uid, path, size, modified, folder, deleted FROM files WHERE path = ?", path)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func GetFileHistory(path string) (*[]File, error) {
 	var files []File
 	for rows.Next() {
 		var file File
-		err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+		err = rows.Scan(&file.UID, &file.Path, &file.Size, &file.Timestamp, &file.Folder, &file.Deleted)
 		if err != nil {
 			return nil, err
 		}
