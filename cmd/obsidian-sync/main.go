@@ -33,6 +33,7 @@ func main() {
 	userGroup.POST("signout", func(c *gin.Context) {
 		c.JSON(200, gin.H{})
 	})
+	userGroup.POST("info", handlers.UserInfo)
 
 	subscriptionGroup := router.Group("/subscription")
 	subscriptionGroup.POST("list", handlers.ListSubscriptions)
