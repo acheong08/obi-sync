@@ -169,6 +169,13 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			if metadata.Deleted {
+				err := vault.DeleteVaultFile(metadata.Path)
+				if err != nil {
+					ws.WriteJSON(gin.H{"error": err.Error()})
+					return
+				}
+			}
 			vaultUID, err := vault.InsertMetadata(connectedVault.ID, vault.File{
 				Path:      metadata.Path,
 				Hash:      metadata.Hash,
@@ -225,7 +232,15 @@ func WsHandler(c *gin.Context) {
 
 		case "ping":
 			ws.WriteJSON(gin.H{"op": "pong"})
+		case "deleted":
+			files, err := vault.GetDeletedFiles()
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			ws.WriteJSON(gin.H{"items": files})
 		}
+
 	}
 
 }

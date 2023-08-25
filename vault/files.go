@@ -93,6 +93,37 @@ func GetFileHistory(path string) (*[]File, error) {
 	return &files, nil
 }
 
+func GetDeletedFiles() (any, error) {
+	// Get all files that are deleted (deleted,folder,path,size,modified,uid)
+	rows, err := db.Query("SELECT uid, modified, size, path, folder, deleted FROM files WHERE deleted = ?", true)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	type f struct {
+		UID       int    `json:"uid"`
+		Timestamp int64  `json:"ts"`
+		Size      int64  `json:"size"`
+		Path      string `json:"path"`
+		Folder    bool   `json:"folder"`
+		Deleted   bool   `json:"deleted"`
+	}
+	var files []f
+	for rows.Next() {
+		var file f
+		err = rows.Scan(&file.UID, &file.Timestamp, &file.Size, &file.Path, &file.Folder, &file.Deleted)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+
+	}
+	if files == nil {
+		return make([]File, 0), nil
+	}
+	return &files, nil
+}
+
 func InsertMetadata(vaultID string, file File) (int, error) {
 	result, err := db.Exec(`INSERT OR REPLACE INTO files (
 		vault_id, path, hash, extension, size, created, modified, folder, deleted) 
@@ -121,7 +152,8 @@ func InsertData(uid int, data *[]byte) error {
 	return err
 }
 
-// func DeleteVaultFile(uid int) error {
-// 	_, err := db.Exec("DELETE FROM files WHERE uid = ?", uid)
-// 	return err
-// }
+func DeleteVaultFile(path string) error {
+	// Update all files with the same path to be deleted
+	_, err := db.Exec("UPDATE files SET deleted = 1 WHERE path = ?", path)
+	return err
+}
