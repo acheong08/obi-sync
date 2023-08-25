@@ -26,7 +26,8 @@ func Signin(c *gin.Context) {
 	dbConnection := c.MustGet("db").(*database.Database)
 	userInfo, err := dbConnection.Login(req.Email, req.Password)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		// 200 because the app doesn't check the status code.
+		c.JSON(200, gin.H{"error": "Login failed, please double check your email and password."})
 		return
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
