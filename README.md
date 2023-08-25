@@ -8,16 +8,6 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 > [!NOTE]
 > If you have the time and energy, feel free to help out with PRs or suggestions.
 
-## Why
-
-I can't afford the subscription. Thus, this was made without observing the network responses since that would require an account...
-
-Workflow:
-- Look at JS
-- Make (failing) request
-- Add code to handle the request
-- Repeat
-
 ## Features
 - Basic sync
 - File recovery
@@ -25,6 +15,7 @@ Workflow:
 
 ## To do
 - Fix bugs
+- ~~Automate patching of electron app~~ Plugin to override API endpoint [#1](https://github.com/acheong08/rev-obsidian-sync/issues/1)
 
 ## Setup
 
@@ -66,7 +57,6 @@ As ObsidianMD is written with Electron, you can unzip the resource pack and modi
 - `tar -xvzf obsidian-1.3.7.tar.gz`
 - `cd obsidian-1.3.7/resources`
 - `npx asar extract obsidian.asar obsidian`
-- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/starter.js` (Remember to replace https with http if running on localhost)
-- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/app.js`
+- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/*.js` (Remember to replace https with http if running on localhost)
 - `npx asar pack obsidian obsidian.asar`
 - Run the binary
