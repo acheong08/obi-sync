@@ -53,22 +53,19 @@ server {
 
 ## Usage
 
-<details>
-
-<summary>
+### Sync override plugin
 
 > [!WARNING]
-> Experimental!
-
-Sync override plugin
-
-</summary>
+> Highly experimental!
 
 - Install https://github.com/acheong08/rev-obsidian-sync-plugin
 - Go to settings
 - Set API endpoint
 
-</details>
+Known bugs:
+- Cannot restart plugin. Must restart app.
+
+### Search and replace
 
 As ObsidianMD is written with Electron, you can unzip the resource pack and modify it to suite your needs
 
