@@ -54,18 +54,18 @@ func UserInfo(c *gin.Context) {
 		Token string `json:"token"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(200, gin.H{"error": "not logged in"})
 		return
 	}
 	email, err := utilities.GetJwtEmail(req.Token)
 	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
+		c.JSON(200, gin.H{"error": "not logged in"})
 		return
 	}
 	dbConnection := c.MustGet("db").(*database.Database)
 	userInfo, err := dbConnection.UserInfo(email)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(200, gin.H{"error": "not logged in"})
 		return
 	}
 	c.JSON(200, gin.H{

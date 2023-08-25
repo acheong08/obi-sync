@@ -245,7 +245,7 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			ws.WriteJSON(file)
-			ws.WriteJSON(gin.H{"op": "ok"})
+			ws.WriteJSON(gin.H{"res": "ok"})
 		}
 
 	}

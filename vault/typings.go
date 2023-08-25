@@ -26,6 +26,6 @@ type File struct {
 	RelatedPath string `json:"related_path,omitempty"`
 	Folder      bool   `json:"folder"`
 	Deleted     bool   `json:"deleted"`
-	UID         string `json:"uid"`
+	UID         int    `json:"uid"`
 	Data        []byte `json:"-"`
 }
