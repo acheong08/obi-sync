@@ -8,16 +8,6 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 > [!NOTE]
 > If you have the time and energy, feel free to help out with PRs or suggestions.
 
-## Why
-
-I can't afford the subscription. Thus, this was made without observing the network responses since that would require an account...
-
-Workflow:
-- Look at JS
-- Make (failing) request
-- Add code to handle the request
-- Repeat
-
 ## Features
 - Basic sync
 - File recovery
