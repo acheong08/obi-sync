@@ -18,10 +18,13 @@ Workflow:
 - Add code to handle the request
 - Repeat
 
-## To do
+## Features
+- Basic sync
 - File recovery
-- Snapshots
-- ~~File History~~
+- File history
+
+## To do
+- Fix bugs
 
 ## Setup
 
