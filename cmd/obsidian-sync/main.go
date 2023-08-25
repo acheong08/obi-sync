@@ -15,8 +15,8 @@ func main() {
 		c.Header("access-control-allow-origin", "app://obsidian.md")
 		c.Header("access-control-allow-methods", "GET, POST, OPTIONS")
 		c.Header("access-control-allow-credentials", "true")
-		// Allow all headers
-		c.Header("access-control-allow-headers", "*")
+		// Allow all headers + content-type
+		c.Header("access-control-allow-headers", "*, content-type")
 		// c.Header("access-control-allow-headers", "content-type")
 
 		// Add database connection to context
