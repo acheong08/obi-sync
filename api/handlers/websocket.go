@@ -243,6 +243,21 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			ws.WriteJSON(gin.H{"items": files})
+		case "restore":
+			var restore struct {
+				UID int `json:"uid" binding:"required"`
+			}
+			err = json.Unmarshal(msg, &restore)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			file, err := vault.RestoreFile(restore.UID)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			ws.WriteJSON(file)
 		}
 
 	}

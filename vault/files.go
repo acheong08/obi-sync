@@ -37,6 +37,27 @@ func init() {
 	}
 }
 
+func RestoreFile(uid int) (*File, error) {
+	// Get file path
+	var file File
+	err := db.QueryRow("SELECT path, hash, extension, size, created, modified, folder, deleted FROM files WHERE uid = ?", uid).Scan(&file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
+	if err != nil {
+		return nil, err
+	}
+	file.UID = uid
+	// Update file to be not deleted
+	_, err = db.Exec("UPDATE files SET deleted = 0 WHERE uid = ?", uid)
+	if err != nil {
+		return nil, err
+	}
+	// Update files with the same path but not deleted to be deleted
+	_, err = db.Exec("UPDATE files SET deleted = 1 WHERE path = ? AND deleted = 0", file.Path)
+	if err != nil {
+		return nil, err
+	}
+	return &file, nil
+}
+
 func GetVaultSize(vaultID string) (int64, error) {
 	var size sql.NullInt64
 	err := db.QueryRow("SELECT COALESCE(SUM(size), 0) FROM files WHERE vault_id = ?", vaultID).Scan(&size)
@@ -76,7 +97,8 @@ func GetFile(uid int) (*File, error) {
 }
 
 func GetFileHistory(path string) (*[]File, error) {
-	rows, err := db.Query("SELECT uid, path, size, modified, folder, deleted FROM files WHERE path = ?", path)
+	// Order by modified time (newest first in array)
+	rows, err := db.Query("SELECT uid, path, size, modified, folder, deleted FROM files WHERE path = ? ORDER BY modified DESC", path)
 	if err != nil {
 		return nil, err
 	}

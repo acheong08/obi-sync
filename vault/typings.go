@@ -15,6 +15,7 @@ type Vault struct {
 }
 
 type File struct {
+	Op          string `json:"op,omitempty"`
 	Path        string `json:"path"`
 	Hash        string `json:"hash,omitempty"`
 	Extension   string `json:"extension,omitempty"`
@@ -25,6 +26,6 @@ type File struct {
 	RelatedPath string `json:"related_path,omitempty"`
 	Folder      bool   `json:"folder"`
 	Deleted     bool   `json:"deleted"`
-	UID         string `json:"uid"`
+	UID         int    `json:"uid"`
 	Data        []byte `json:"-"`
 }
