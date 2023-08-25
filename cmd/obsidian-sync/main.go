@@ -44,6 +44,7 @@ func main() {
 	vaultGroup.POST("access", handlers.AccessVault)
 
 	router.GET("/", handlers.WsHandler)
+	router.GET("/ws", handlers.WsHandler)
 
 	endless.ListenAndServe("127.0.0.1:3000", router)
 

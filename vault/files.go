@@ -21,6 +21,7 @@ func init() {
 		CREATE TABLE IF NOT EXISTS files (
 			uid INTEGER PRIMARY KEY AUTOINCREMENT,
 			vault_id TEXT,
+			hash TEXT,
 			path TEXT,
 			extension TEXT,
 			size INTEGER,
@@ -70,12 +71,12 @@ func GetVaultFiles(vaultID string) (*[]File, error) {
 func GetFile(uid int) (*File, error) {
 	var file File
 	// Get hash and size
-	err := db.QueryRow("SELECT hash, size FROM files WHERE uid = ?", uid).Scan(&file.Hash, &file.Size)
+	err := db.QueryRow("SELECT hash, size, data FROM files WHERE uid = ?", uid).Scan(&file.Hash, &file.Size, &file.Data)
 	return &file, err
 }
 
 func GetFileHistory(path string) (*[]File, error) {
-	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE path = ? AND deleted = 0", path)
+	rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE path = ?", path)
 	if err != nil {
 		return nil, err
 	}
@@ -116,8 +117,7 @@ func GetFileData(uid int) (*[]byte, error) {
 }
 
 func InsertData(uid int, data *[]byte) error {
-	// Overwrite file if it already exists
-	_, err := db.Exec("INSERT OR REPLACE INTO files (uid, data) VALUES (?, ?)", uid, *data)
+	_, err := db.Exec("UPDATE files SET data = ? WHERE uid = ?", data, uid)
 	return err
 }
 

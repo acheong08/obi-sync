@@ -145,9 +145,9 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			ws.WriteJSON(gin.H{
-				"hash": file.Hash, "size": len(file.Data), "pieces": 1,
+				"hash": file.Hash, "size": file.Size, "pieces": 1,
 			})
-			if len(file.Data) != 0 {
+			if file.Size != 0 {
 				ws.WriteMessage(websocket.BinaryMessage, file.Data)
 			}
 		case "push":
@@ -216,6 +216,12 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			files, err := vault.GetFileHistory(history.Path)
+			if err != nil {
+				ws.WriteJSON(gin.H{"error": err.Error()})
+				return
+			}
+			ws.WriteJSON(gin.H{"items": files, "more": false})
 
 		case "ping":
 			ws.WriteJSON(gin.H{"op": "pong"})
