@@ -41,10 +41,12 @@ func init() {
 
 // Sets the newest files to also be snapshots and
 // deletes all files which are not snapshots
+// deletes all files where size is not 0 but data is null
 func Snapshot(vaultID string) error {
 	_, err := db.Exec(`
 		UPDATE files SET is_snapshot = 1 WHERE newest = 1 AND vault_id = $1;
 		DELETE FROM files WHERE is_snapshot = 0 AND vault_id = $1;
+		DELETE FROM files WHERE size != 0 AND data IS NULL AND vault_id = $1;
 	`, vaultID)
 	return err
 }
