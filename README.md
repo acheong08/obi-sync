@@ -67,4 +67,6 @@ This plugin will not be part of the official community plugins list.
 - Set API endpoint
 
 Known bugs:
-- Cannot restart plugin (for whatever reason you might want to do that...) - Restart the app if you want to reload this particular plugin
+- ~~Cannot restart plugin (for whatever reason you might want to do that...) - Restart the app if you want to reload this particular plugin~~
+
+Report all bugs in this repository.
