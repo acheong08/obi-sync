@@ -3,6 +3,7 @@ package vault
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -156,6 +157,13 @@ func GetDeletedFiles() (any, error) {
 }
 
 func InsertMetadata(vaultID string, file File) (int, error) {
+	// If created & modified are 0, set them to current time
+	if file.Created == 0 {
+		file.Created = time.Now().UnixMilli()
+	}
+	if file.Modified == 0 {
+		file.Modified = time.Now().UnixMilli()
+	}
 	// Set previous files with the same path to not be newest
 	_, err := db.Exec("UPDATE files SET newest = 0 WHERE path = ? AND newest = 1", file.Path)
 	if err != nil {
