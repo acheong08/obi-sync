@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/acheong08/obsidian-sync/database"
@@ -248,6 +249,9 @@ func WsHandler(c *gin.Context) {
 			file.Op = "push"
 			ws.WriteJSON(file)
 			ws.WriteJSON(gin.H{"res": "ok"})
+		default:
+			log.Println("Unknown operation:", m.Op)
+			log.Println("Data: ", string(msg))
 		}
 
 	}
