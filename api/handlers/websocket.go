@@ -80,7 +80,7 @@ func WsHandler(c *gin.Context) {
 	defer vault.Snapshot(connectedVault.ID)
 
 	dbConnection := c.MustGet("db").(*database.Database)
-	dbConnection.BumpVaultVersion(connectedVault.ID)
+	dbConnection.SetVaultVersion(connectedVault.ID, connectedVault.Version+1)
 
 	// Inifinite loop to handle messages
 	type message struct {

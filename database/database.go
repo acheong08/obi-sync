@@ -187,8 +187,8 @@ func (db *Database) GetVault(id, keyHash string) (*vault.Vault, error) {
 	return vault, nil
 }
 
-func (db *Database) BumpVaultVersion(id string) error {
-	_, err := db.DBConnection.Exec("UPDATE vaults SET version = version + 1 WHERE id = ?", id)
+func (db *Database) SetVaultVersion(id string, ver int) error {
+	_, err := db.DBConnection.Exec("UPDATE vaults SET version = ? WHERE id = ?", ver, id)
 	return err
 }
 
