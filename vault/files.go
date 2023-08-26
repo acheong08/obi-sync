@@ -30,12 +30,23 @@ func init() {
 			folder INTEGER,
 			deleted INTEGER,
 			data BLOB,
-			newest INTEGER NOT NULL DEFAULT 1
+			newest INTEGER NOT NULL DEFAULT 1,
+			is_snapshot INTEGER NOT NULL DEFAULT 0
 		);
 	`)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// Sets the newest files to also be snapshots and
+// deletes all files which are not snapshots
+func Snapshot(vaultID string) error {
+	_, err := db.Exec(`
+		UPDATE files SET is_snapshot = 1 WHERE newest = 1 AND vault_id = $1;
+		DELETE FROM files WHERE is_snapshot = 0 AND vault_id = $1;
+	`, vaultID)
+	return err
 }
 
 func RestoreFile(uid int) (*File, error) {
@@ -46,16 +57,12 @@ func RestoreFile(uid int) (*File, error) {
 		return nil, err
 	}
 	file.UID = uid
-	// Update file to be not deleted and newest
-	_, err = db.Exec("UPDATE files SET deleted = 0, newest = 1 WHERE uid = ?", uid)
-	if err != nil {
-		return nil, err
-	}
-	_, err = db.Exec("UPDATE files SET newest = 0 WHERE path = ? AND deleted = 0", file.Path)
-	if err != nil {
-		return nil, err
-	}
-	return &file, nil
+	// Update file to be not deleted and newest and all other files with the
+	// same path to not be newest
+	_, err = db.Exec(`UPDATE files SET deleted = 0, newest = 1 WHERE uid = $1;
+		UPDATE files SET newest = 0 WHERE path = $2 AND deleted = 0`, uid, file.Path)
+
+	return &file, err
 }
 
 func GetVaultSize(vaultID string) (int64, error) {

@@ -78,6 +78,8 @@ func WsHandler(c *gin.Context) {
 	}
 	ws.WriteJSON(gin.H{"op": "ready", "version": connectedVault.Version})
 
+	defer vault.Snapshot(connectedVault.ID)
+
 	dbConnection := c.MustGet("db").(*database.Database)
 	dbConnection.BumpVaultVersion(connectedVault.ID)
 
