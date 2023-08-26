@@ -17,7 +17,6 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 - Fix bugs
 - Sharing notes
 - Publish
-- ~~Automate patching of electron app~~ Plugin to override API endpoint [#1](https://github.com/acheong08/rev-obsidian-sync/issues/1)
 
 ## Setup
 
@@ -51,28 +50,14 @@ server {
 
 `go run cmd/signup/main.go`
 
-## Usage
-
-### Sync override plugin
-
-> [!WARNING]
-> Highly experimental!
+## Sync override plugin
+> Tested on
+> - IOS
+> - Linux (Flatpak)
 
 - Install https://github.com/acheong08/rev-obsidian-sync-plugin
 - Go to settings
 - Set API endpoint
 
 Known bugs:
-- Cannot restart plugin. Must restart app.
-
-### Search and replace
-
-As ObsidianMD is written with Electron, you can unzip the resource pack and modify it to suite your needs
-
-- Download [Obsidian](https://github.com/obsidianmd/obsidian-releases/releases/)
-- `tar -xvzf obsidian-1.3.7.tar.gz`
-- `cd obsidian-1.3.7/resources`
-- `npx asar extract obsidian.asar obsidian`
-- `sed -i 's|api.obsidian.md|<YOUR DOMAIN NAME>|g' obsidian/*.js` (Remember to replace https with http if running on localhost)
-- `npx asar pack obsidian obsidian.asar`
-- Run the binary
+- Cannot restart plugin (for whatever reason you might want to do that...) - Restart the app if you want to reload this particular plugin
