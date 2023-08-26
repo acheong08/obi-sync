@@ -12,7 +12,7 @@ func main() {
 	defer dbConnection.Close()
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
-		c.Header("access-control-allow-origin", "app://obsidian.md")
+		c.Header("access-control-allow-origin", "*")
 		c.Header("access-control-allow-methods", "GET, POST, OPTIONS")
 		c.Header("access-control-allow-credentials", "true")
 		// Allow all headers + content-type
