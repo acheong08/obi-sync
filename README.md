@@ -51,9 +51,16 @@ server {
 `go run cmd/signup/main.go`
 
 ## Sync override plugin
-> Tested on
-> - IOS
-> - Linux (Flatpak)
+
+Tested on
+- IOS
+- Linux (Flatpak)
+
+### Usage
+
+> While we have no qualms with reverse engineering as a playground for experimentation, Obsidian Sync is a service we intend to keep first-party only for the foreseeable future. - https://github.com/obsidianmd/obsidian-releases/pull/2353
+
+This plugin will not be part of the official community plugins list.
 
 - Install https://github.com/acheong08/rev-obsidian-sync-plugin
 - Go to settings
