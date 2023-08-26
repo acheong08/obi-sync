@@ -54,27 +54,26 @@ func WsHandler(c *gin.Context) {
 	}
 	// No errors: ok response
 	ws.WriteJSON(gin.H{"res": "ok"})
-	if connectionInfo.Initial {
-		var version int = utilities.ToInt(connectionInfo.Version)
+	var version int = utilities.ToInt(connectionInfo.Version)
+	if err != nil {
+		ws.WriteJSON(gin.H{"error": err.Error()})
+		return
+	}
+	if connectedVault.Version != version {
+		vaultFiles, err := vault.GetVaultFiles(connectedVault.ID)
 		if err != nil {
 			ws.WriteJSON(gin.H{"error": err.Error()})
 			return
 		}
-		if connectedVault.Version != version {
-			vaultFiles, err := vault.GetVaultFiles(connectedVault.ID)
-			if err != nil {
-				ws.WriteJSON(gin.H{"error": err.Error()})
-				return
-			}
-			for _, file := range *vaultFiles {
-				ws.WriteJSON(gin.H{
-					"op": "push", "path": file.Path,
-					"hash": file.Hash, "size": file.Size,
-					"ctime": file.Created, "mtime": file.Modified, "folder": file.Folder,
-					"deleted": file.Deleted, "device": "insignificantv5", "uid": file.UID})
+		for _, file := range *vaultFiles {
+			ws.WriteJSON(gin.H{
+				"op": "push", "path": file.Path,
+				"hash": file.Hash, "size": file.Size,
+				"ctime": file.Created, "mtime": file.Modified, "folder": file.Folder,
+				"deleted": file.Deleted, "device": "insignificantv5", "uid": file.UID})
 
-			}
 		}
+
 	}
 	ws.WriteJSON(gin.H{"op": "ready", "version": connectedVault.Version})
 
