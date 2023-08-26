@@ -60,7 +60,7 @@ func WsHandler(c *gin.Context) {
 		ws.WriteJSON(gin.H{"error": err.Error()})
 		return
 	}
-	if connectedVault.Version != version {
+	if connectedVault.Version > version {
 		vaultFiles, err := vault.GetVaultFiles(connectedVault.ID)
 		if err != nil {
 			ws.WriteJSON(gin.H{"error": err.Error()})
