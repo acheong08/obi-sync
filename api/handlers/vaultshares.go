@@ -9,7 +9,7 @@ import (
 func InviteVaultShare(c *gin.Context) {
 	var req struct {
 		Email   string `json:"email"`
-		Token   string `json:"token"`
+		Token   string `json:"token" binding:"required"`
 		VaultID string `json:"vault_uid"`
 	}
 	if c.BindJSON(&req) != nil {
@@ -54,7 +54,7 @@ func InviteVaultShare(c *gin.Context) {
 
 func ListVaultShares(c *gin.Context) {
 	var req struct {
-		Token   string `json:"token"`
+		Token   string `json:"token" binding:"required"`
 		VaultID string `json:"vault_uid"`
 	}
 	if c.BindJSON(&req) != nil {
@@ -92,8 +92,8 @@ func ListVaultShares(c *gin.Context) {
 func RemoveVaultShare(c *gin.Context) {
 	var req struct {
 		ShareUID string `json:"share_uid"`
-		Token    string `json:"token"`
-		VaultUID string `json:"vault_uid"`
+		Token    string `json:"token" binding:"required"`
+		VaultUID string `json:"vault_uid" binding:"required"`
 	}
 	if c.BindJSON(&req) != nil {
 		c.JSON(400, gin.H{
@@ -114,7 +114,7 @@ func RemoveVaultShare(c *gin.Context) {
 			"error": "You do not have access to this vault",
 		})
 	}
-	err = db.ShareVaultRevoke(req.ShareUID, req.VaultUID)
+	err = db.ShareVaultRevoke(req.ShareUID, req.VaultUID, email)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"error": "Failed to remove vault share",

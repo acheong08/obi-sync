@@ -13,7 +13,7 @@ func ListVaults(c *gin.Context) {
 		Token string `json:"token" binding:"required"`
 	}
 	type response struct {
-		Shared []any          `json:"shared"`
+		Shared []*vault.Vault `json:"shared"`
 		Vaults []*vault.Vault `json:"vaults"`
 	}
 	var req request
@@ -35,8 +35,13 @@ func ListVaults(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+	// Get shared vaults
+	shared, err := dbConnection.GetSharedVaults(email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
 	c.JSON(200, response{
-		Shared: []any{},
+		Shared: shared,
 		Vaults: vaults,
 	})
 

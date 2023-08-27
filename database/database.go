@@ -112,8 +112,13 @@ func (db *Database) ShareVaultInvite(email, name, vaultID string) error {
 	return err
 }
 
-func (db *Database) ShareVaultRevoke(shareID, vaultID string) error {
-	_, err := db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareID, vaultID)
+func (db *Database) ShareVaultRevoke(shareID, vaultID, userEmail string) error {
+	var err error
+	if shareID != "" {
+		_, err = db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareID, vaultID)
+	} else {
+		_, err = db.DBConnection.Exec("DELETE FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail)
+	}
 	return err
 }
 
@@ -158,10 +163,7 @@ func (db *Database) GetSharedVaults(userEmail string) ([]*vault.Vault, error) {
 }
 
 func (db *Database) HasAccessToVault(vaultID, userEmail string) bool {
-	var email string
-	// Check vaults table
-	db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
-	if email == userEmail {
+	if db.IsVaultOwner(vaultID, userEmail) {
 		return true
 	}
 
@@ -173,6 +175,13 @@ func (db *Database) HasAccessToVault(vaultID, userEmail string) bool {
 		return false
 	}
 	return true
+}
+
+func (db *Database) IsVaultOwner(vaultID, userEmail string) bool {
+	var email string
+	// Check vaults table
+	db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
+	return email == userEmail
 }
 
 func (db *Database) NewUser(email, password, name string) error {
@@ -263,8 +272,10 @@ func (db *Database) GetVault(id, keyHash string) (*vault.Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	if dbKeyHash != keyHash {
-		return nil, errors.New("invalid keyhash")
+	if keyHash != "" {
+		if dbKeyHash != keyHash {
+			return nil, errors.New("invalid keyhash")
+		}
 	}
 	return vault, nil
 }
@@ -290,11 +301,8 @@ func (db *Database) GetVaults(userEmail string) ([]*vault.Vault, error) {
 		}
 		vaults = append(vaults, vault)
 	}
-	// Get shared vaults
-	sharedVaults, err := db.GetSharedVaults(userEmail)
 	if err != nil {
 		return nil, err
 	}
-	vaults = append(vaults, sharedVaults...)
 	return vaults, nil
 }
