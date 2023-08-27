@@ -109,10 +109,19 @@ func RemoveVaultShare(c *gin.Context) {
 		return
 	}
 	db := c.MustGet("db").(*database.Database)
-	if !db.HasAccessToVault(email, req.VaultUID) {
-		c.JSON(401, gin.H{
-			"error": "You do not have access to this vault",
-		})
+	if req.ShareUID != "" {
+		if !db.IsVaultOwner(req.VaultUID, email) {
+			c.JSON(401, gin.H{
+				"error": "You are not the owner of this vault",
+			})
+			return
+		}
+	} else {
+		if !db.HasAccessToVault(email, req.VaultUID) {
+			c.JSON(401, gin.H{
+				"error": "You do not have access to this vault",
+			})
+		}
 	}
 	err = db.ShareVaultRevoke(req.ShareUID, req.VaultUID, email)
 	if err != nil {
