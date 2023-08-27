@@ -75,6 +75,7 @@ func ListVaultShares(c *gin.Context) {
 		c.JSON(401, gin.H{
 			"error": "You do not have access to this vault",
 		})
+		return
 	}
 	shares, err := db.GetVaultShares(req.VaultID)
 	if err != nil {

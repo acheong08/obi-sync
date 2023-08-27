@@ -46,7 +46,7 @@ func (cm *channelManager) Broadcast(msg any) {
 }
 
 // map[vaultID]ChannelManager
-var channels map[string]*channelManager
+var channels map[string]*channelManager = make(map[string]*channelManager)
 
 func getMsg(ws *websocket.Conn) ([]byte, error) {
 	msgType, msg, err := ws.ReadMessage()

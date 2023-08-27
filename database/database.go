@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"os"
 	"time"
 
@@ -160,18 +161,16 @@ func (db *Database) GetSharedVaults(userEmail string) ([]*vault.Vault, error) {
 func (db *Database) HasAccessToVault(vaultID, userEmail string) bool {
 	var email string
 	// Check vaults table
-	err := db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
-	if err != nil {
-		return false
-	}
+	db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
 	if email == userEmail {
 		return true
 	}
 
 	// Check shares table
 	var count int
-	err = db.DBConnection.QueryRow("COUNT(*) FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail).Scan(&count)
+	err := db.DBConnection.QueryRow("SELECT COUNT(*) FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail).Scan(&count)
 	if err != nil {
+		log.Println(err.Error())
 		return false
 	}
 	return true
