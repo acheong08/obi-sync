@@ -11,21 +11,20 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 ## Features
 
 - End to end encryption
-- Basic sync
+- Live sync (across devices)
 - File history/recovery/snapshots
 - Works natively on IOS/Android/Linux/MacOS/Windows... (via the plugin)
+- Vault sharing
 
 ### Experimental
 
 These features are not in the latest release but in the main branch. They might not be fully tested and are probably unstable.
 
-- Broadcast changes: Updates to files will be broadcast to all devices connected to the vault. This allows you to use multiple devices at once and have the files be synced in real time.
-- Vault sharing: Share a vault with another user. This allows you to collaborate with others on the same vault.
+- <N/A>
 
 ## To do
 
 - Fix bugs
-- Sharing notes
 - Publish
 
 ## Setup
