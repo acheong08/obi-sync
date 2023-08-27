@@ -47,8 +47,21 @@ func NewDatabase() *Database {
 			password TEXT NOT NULL,
 			salt TEXT NOT NULL,
 			version INTEGER NOT NULL DEFAULT 0,
-			keyhash TEXT NOT NULL
+			keyhash TEXT NOT NULL,
+			shared_users TEXT NOT NULL DEFAULT ""
 		)`)
+		if err != nil {
+			panic(err)
+		}
+		// Create vault_shares table
+		_, err = db.Exec(`CREATE TABLE shares (
+			id TEXT PRIMARY KEY,
+			email TEXT NOT NULL,
+			name TEXT NOT NULL,
+			vault_id TEXT NOT NULL,
+			accepted INTEGER NOT NULL DEFAULT 1
+		)
+		`)
 		if err != nil {
 			panic(err)
 		}
@@ -91,6 +104,77 @@ func NewDatabase() *Database {
 
 func (db *Database) Close() {
 	db.DBConnection.Close()
+}
+
+func (db *Database) ShareVaultInvite(email, name, vaultID string) error {
+	shareID := uuid.New().String()
+	_, err := db.DBConnection.Exec("INSERT INTO shares (id, email, name, vault_id) VALUES (?, ?, ?, ?)", shareID, email, name, vaultID)
+	return err
+}
+
+func (db *Database) ShareVaultRevoke(shareID, vaultID string) error {
+	_, err := db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareID, vaultID)
+	return err
+}
+
+func (db *Database) GetVaultShares(vaultID string) ([]*vault.Share, error) {
+	rows, err := db.DBConnection.Query("SELECT id, email, name, accepted FROM shares WHERE vault_id = ?", vaultID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	shares := []*vault.Share{}
+	for rows.Next() {
+		share := &vault.Share{}
+		err = rows.Scan(&share.UID, &share.Email, &share.Name, &share.Accepted)
+		if err != nil {
+			return nil, err
+		}
+		shares = append(shares, share)
+	}
+	return shares, nil
+}
+
+func (db *Database) GetSharedVaults(userEmail string) ([]*vault.Vault, error) {
+	rows, err := db.DBConnection.Query("SELECT vault_id FROM shares WHERE email = ?", userEmail)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	vaults := []*vault.Vault{}
+	for rows.Next() {
+		var vaultID string
+		err = rows.Scan(&vaultID)
+		if err != nil {
+			return nil, err
+		}
+		vault, err := db.GetVault(vaultID, "")
+		if err != nil {
+			return nil, err
+		}
+		vaults = append(vaults, vault)
+	}
+	return vaults, nil
+}
+
+func (db *Database) HasAccessToVault(vaultID, userEmail string) bool {
+	var email string
+	// Check vaults table
+	err := db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
+	if err != nil {
+		return false
+	}
+	if email == userEmail {
+		return true
+	}
+
+	// Check shares table
+	var count int
+	err = db.DBConnection.QueryRow("COUNT(*) FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail).Scan(&count)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (db *Database) NewUser(email, password, name string) error {
@@ -208,5 +292,11 @@ func (db *Database) GetVaults(userEmail string) ([]*vault.Vault, error) {
 		}
 		vaults = append(vaults, vault)
 	}
+	// Get shared vaults
+	sharedVaults, err := db.GetSharedVaults(userEmail)
+	if err != nil {
+		return nil, err
+	}
+	vaults = append(vaults, sharedVaults...)
 	return vaults, nil
 }

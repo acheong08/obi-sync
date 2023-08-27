@@ -44,6 +44,11 @@ func main() {
 	vaultGroup.POST("delete", handlers.DeleteVault)
 	vaultGroup.POST("access", handlers.AccessVault)
 
+	vaultShareGroup := router.Group("/vault/share")
+	vaultShareGroup.POST("list", handlers.ListVaultShares)
+	vaultShareGroup.POST("invite", handlers.InviteVaultShare)
+	vaultShareGroup.POST("remove", handlers.RemoveVaultShare)
+
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
 

@@ -29,3 +29,10 @@ type File struct {
 	UID         int    `json:"uid"`
 	Data        []byte `json:"-"`
 }
+
+type Share struct {
+	Accepted bool   `json:"accepted"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	UID      int    `json:"uid"`
+}
