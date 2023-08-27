@@ -103,6 +103,7 @@ func WsHandler(c *gin.Context) {
 		}
 
 	}
+	var version_bumped bool = false
 	ws.WriteJSON(gin.H{"op": "ready", "version": connectedVault.Version})
 
 	defer vault.Snapshot(connectedVault.ID)
@@ -244,6 +245,10 @@ func WsHandler(c *gin.Context) {
 			metadata.UID = int(vaultUID)
 			// Broadcast to all clients
 			channels[connectedVault.ID].Broadcast(metadata)
+			if !version_bumped {
+				dbConnection.SetVaultVersion(connectedVault.ID, version+1)
+				version_bumped = true
+			}
 			ws.WriteJSON(gin.H{"op": "ok"})
 		case "history":
 			var history struct {
