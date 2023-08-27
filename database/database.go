@@ -48,8 +48,7 @@ func NewDatabase() *Database {
 			password TEXT NOT NULL,
 			salt TEXT NOT NULL,
 			version INTEGER NOT NULL DEFAULT 0,
-			keyhash TEXT NOT NULL,
-			shared_users TEXT NOT NULL DEFAULT ""
+			keyhash TEXT NOT NULL
 		)`)
 		if err != nil {
 			panic(err)

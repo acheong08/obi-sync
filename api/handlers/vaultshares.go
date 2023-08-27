@@ -80,8 +80,9 @@ func ListVaultShares(c *gin.Context) {
 	shares, err := db.GetVaultShares(req.VaultID)
 	if err != nil {
 		c.JSON(200, gin.H{
-			"error": "Failed to get vault shares",
+			"error": err.Error(),
 		})
+		return
 	}
 	c.JSON(200, gin.H{
 		"shares": shares,
