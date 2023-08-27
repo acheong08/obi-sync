@@ -27,15 +27,21 @@ These features are not in the latest release but in the main branch. They might 
 - Fix bugs
 - Publish
 
-## Setup
 
+## Setup
 - `git clone https://github.com/acheong08/obsidian-sync`
 - `cd obsidian-sync`
-- `export HOST=<YOUR DOMAIN NAME>`
+- `export HOST=<YOUR DOMAIN NAME>` - Not necessary when running on localhost
 - `go run cmd/obsidian-sync/main.go`
 - Use nginx or cloudflare to proxy & handle TLS/SSL
 
+When you're done, configure the [plugin](#sync-override-plugin)
+
+<details>
+<summary>
+	
 ### Nginx configuration
+</summary>
 
 ```nginx
 map $http_upgrade $connection_upgrade {
@@ -57,6 +63,8 @@ server {
 ```
 
 HTTPS _should_ be required. I use `certbot` or Cloudflare
+
+</details>
 
 ## Adding a new user
 
