@@ -51,6 +51,8 @@ server {
 }
 ```
 
+HTTPS *should* be required. I use `certbot` or Cloudflare
+
 ## Adding a new user
 
 `go run cmd/signup/main.go`
