@@ -140,13 +140,13 @@ func AccessVault(c *gin.Context) {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
-	vault, err := dbConnection.GetVault(req.VaultUID, req.KeyHash)
-	if err != nil {
-		c.JSON(200, gin.H{"error": err.Error()})
+	if !dbConnection.HasAccessToVault(req.VaultUID, email) {
+		c.JSON(401, gin.H{"error": "You do not have access to this vault"})
 		return
 	}
-	if vault.UserEmail != email {
-		c.JSON(200, gin.H{"error": "Email doesn't match up"})
+	_, err = dbConnection.GetVault(req.VaultUID, req.KeyHash)
+	if err != nil {
+		c.JSON(200, gin.H{"error": err.Error()})
 		return
 	}
 	// Get user details

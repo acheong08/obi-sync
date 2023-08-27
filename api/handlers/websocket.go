@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -74,7 +75,7 @@ func WsHandler(c *gin.Context) {
 		return
 	}
 	// Parse initialization message as JSON
-	connectionInfo, _, connectedVault, err := initHandler(msg, c.MustGet("db").(*database.Database))
+	connectionInfo, connectedVault, err := initHandler(msg, c.MustGet("db").(*database.Database))
 	if err != nil {
 		ws.WriteJSON(gin.H{"error": err.Error()})
 		return
@@ -312,23 +313,26 @@ type initializationRequest struct {
 	Device  string `json:"device" binding:"required"`
 }
 
-func initHandler(req []byte, dbConnection *database.Database) (*initializationRequest, string, *vault.Vault, error) {
+func initHandler(req []byte, dbConnection *database.Database) (*initializationRequest, *vault.Vault, error) {
 
 	var initial initializationRequest
 	err := json.Unmarshal(req, &initial)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
 	// Validate token and key hash
 	email, err := utilities.GetJwtEmail(initial.Token)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
 	vault, err := dbConnection.GetVault(initial.Id, initial.KeyHash)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
-	return &initial, email, vault, nil
+	if !dbConnection.HasAccessToVault(vault.ID, email) {
+		return nil, nil, fmt.Errorf("no access to vault")
+	}
+	return &initial, vault, nil
 }
