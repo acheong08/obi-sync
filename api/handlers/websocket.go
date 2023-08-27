@@ -21,6 +21,32 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// A channel manager: push messages to all clients on the same vault
+type channelManager struct {
+	clients map[*websocket.Conn]bool
+}
+
+func (cm *channelManager) AddClient(ws *websocket.Conn) {
+	cm.clients[ws] = true
+}
+
+func (cm *channelManager) RemoveClient(ws *websocket.Conn) {
+	delete(cm.clients, ws)
+}
+
+func (cm *channelManager) IsEmpty() bool {
+	return len(cm.clients) == 0
+}
+
+func (cm *channelManager) Broadcast(msg any) {
+	for client := range cm.clients {
+		client.WriteJSON(msg)
+	}
+}
+
+// map[vaultID]ChannelManager
+var channels map[string]*channelManager
+
 func getMsg(ws *websocket.Conn) ([]byte, error) {
 	msgType, msg, err := ws.ReadMessage()
 	if err != nil {
@@ -81,7 +107,24 @@ func WsHandler(c *gin.Context) {
 	defer vault.Snapshot(connectedVault.ID)
 
 	dbConnection := c.MustGet("db").(*database.Database)
-	defer dbConnection.SetVaultVersion(connectedVault.ID, version)
+	if connectedVault.Version < version {
+		dbConnection.SetVaultVersion(connectedVault.ID, version)
+	}
+
+	// Check if vaultID is in channels
+	if _, ok := channels[connectedVault.ID]; !ok {
+		// Create new channel manager
+		channels[connectedVault.ID] = &channelManager{
+			clients: make(map[*websocket.Conn]bool),
+		}
+	}
+	channels[connectedVault.ID].AddClient(ws)
+	defer channels[connectedVault.ID].RemoveClient(ws)
+	defer func() {
+		if channels[connectedVault.ID].IsEmpty() {
+			delete(channels, connectedVault.ID)
+		}
+	}()
 
 	// Inifinite loop to handle messages
 	type message struct {
@@ -198,7 +241,8 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			metadata.UID = int(vaultUID)
-			ws.WriteJSON(metadata)
+			// Broadcast to all clients
+			channels[connectedVault.ID].Broadcast(metadata)
 			ws.WriteJSON(gin.H{"op": "ok"})
 		case "history":
 			var history struct {
@@ -247,7 +291,7 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			file.Op = "push"
-			ws.WriteJSON(file)
+			channels[connectedVault.ID].Broadcast(file)
 			ws.WriteJSON(gin.H{"res": "ok"})
 		default:
 			log.Println("Unknown operation:", m.Op)
