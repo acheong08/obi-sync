@@ -35,7 +35,7 @@ func InviteVaultShare(c *gin.Context) {
 		})
 	}
 
-	user, err := db.UserInfo(email)
+	user, err := db.UserInfo(req.Email)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"error": "User does not exist",
