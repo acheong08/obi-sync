@@ -113,6 +113,9 @@ func WsHandler(c *gin.Context) {
 	}
 
 	// Check if vaultID is in channels
+	if channels == nil {
+		channels = make(map[string]*channelManager)
+	}
 	if _, ok := channels[connectedVault.ID]; !ok {
 		// Create new channel manager
 		channels[connectedVault.ID] = &channelManager{
