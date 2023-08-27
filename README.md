@@ -9,9 +9,14 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 > If you have the time and energy, feel free to help out with PRs or suggestions.
 
 ## Features
+- End to end encryption
 - Basic sync
-- File recovery
-- File history
+- File history/recovery/snapshots
+- Works natively on IOS/Android/Linux/MacOS/Windows... (via the plugin)
+
+### Experimental
+These features are not in the latest release but in the main branch. They might not be fully tested and are probably unstable.
+- Broadcast changes: Updates to files will be broadcast to all devices connected to the vault. This allows you to use multiple devices at once and have the files be synced in real time.
 
 ## To do
 - Fix bugs
