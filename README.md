@@ -86,6 +86,8 @@ This plugin will not be part of the official community plugins list.
 - Install https://github.com/acheong08/rev-obsidian-sync-plugin
 - Go to settings
 - Set API endpoint
+	- e.g. `https://obsidian.yourdomain.com`
+ 	- For development: `http://127.0.0.1:3000` 
 
 Known bugs:
 
