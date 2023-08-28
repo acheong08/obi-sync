@@ -59,7 +59,7 @@ func main() {
 	// returns a map of slug id to name
 	publishGroup.POST("slugs")
 	// list files in a site
-	publishGroup.POST("list")
+	publishGroup.POST("list", handlers.ListPublish)
 
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
