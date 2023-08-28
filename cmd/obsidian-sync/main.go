@@ -63,6 +63,7 @@ func main() {
 	// returns a map of slug id to name
 	publishAPI.POST("slugs", handlers.SlugsPublish)
 	publishAPI.POST("upload", handlers.UploadFile)
+	publishAPI.POST("remove", handlers.RemoveFile)
 
 	publishedGroup := router.Group("/published")
 	publishedGroup.GET(":slug/:path", handlers.GetPublishedFile)

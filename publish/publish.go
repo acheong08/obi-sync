@@ -61,6 +61,11 @@ func NewFile(file *File) error {
 	return err
 }
 
+func RemoveFile(siteID, path string) error {
+	_, err := db.Exec("DELETE FROM files WHERE site = ? AND path = ?", siteID, path)
+	return err
+}
+
 func CreateSite(owner string) (*Site, error) {
 	var site Site = Site{
 		ID:      uuid.New().String(),

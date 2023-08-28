@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"net/url"
 
 	"github.com/acheong08/obsidian-sync/publish"
 	"github.com/acheong08/obsidian-sync/utilities"
@@ -192,6 +193,48 @@ func SitePublish(c *gin.Context) {
 	c.JSON(200, site)
 }
 
+func RemoveFile(c *gin.Context) {
+	var req struct {
+		Token string `json:"token" binding:"required"`
+		Path  string `json:"path" binding:"required"`
+		ID    string `json:"id" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+	email, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		c.JSON(401, gin.H{
+			"error": "invalid token",
+		})
+		return
+	}
+	siteOwner, err := publish.GetSiteOwner(req.ID)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if siteOwner != email {
+		c.JSON(403, gin.H{
+			"error": "You do not have permission to delete this file",
+		})
+		return
+	}
+	err = publish.RemoveFile(req.ID, req.Path)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{})
+}
+
 func UploadFile(c *gin.Context) {
 	Token := c.Request.Header.Get("obs-token")
 	email, err := utilities.GetJwtEmail(Token)
@@ -206,6 +249,14 @@ func UploadFile(c *gin.Context) {
 		Hash: c.Request.Header.Get("obs-hash"),
 		Site: c.Request.Header.Get("obs-id"),
 		Path: c.Request.Header.Get("obs-path"),
+	}
+	// Path is URL encoded. Unencode it
+	file.Path, err = url.QueryUnescape(file.Path)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 	siteOwner, err := publish.GetSiteOwner(file.Site)
 	if err != nil {
@@ -256,7 +307,10 @@ func GetPublishedFile(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
+			"site":  site,
+			"path":  path,
 		})
+		return
 	}
 	// Return file []byte
 	c.Data(200, "text/markdown; charset=utf-8", file)
