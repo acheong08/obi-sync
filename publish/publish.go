@@ -57,7 +57,7 @@ func GetFile(siteID, path string) ([]byte, error) {
 func NewFile(file *File) error {
 	file.CTime = time.Now().UnixMilli()
 	file.MTime = time.Now().UnixMilli()
-	_, err := db.Exec("INSERT INTO files (path, ctime, hash, mtime, size, data, site) VALUES (?, ?, ?, ?, ?, ?, ?)", file.Path, file.CTime, file.Hash, file.MTime, file.Size, file.Data, file.Site)
+	_, err := db.Exec("INSERT OR REPLACE INTO files (path, ctime, hash, mtime, size, data, site) VALUES (?, ?, ?, ?, ?, ?, ?)", file.Path, file.CTime, file.Hash, file.MTime, file.Size, file.Data, file.Site)
 	return err
 }
 
