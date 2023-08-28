@@ -293,7 +293,7 @@ func UploadFile(c *gin.Context) {
 func GetPublishedFile(c *gin.Context) {
 	// Get slug and path from url
 	slug := c.Param("slug")
-	path := c.Param("path")
+	path := c.Param("path")[1:]
 
 	// Get site id from slug
 	site, err := publish.GetSlug(slug)
