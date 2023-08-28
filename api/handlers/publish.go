@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+
 	"github.com/acheong08/obsidian-sync/publish"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
@@ -91,4 +93,39 @@ func SlugsPublish(c *gin.Context) {
 		siteSlugs[id] = slug
 	}
 	c.JSON(200, siteSlugs)
+}
+
+func SitePublish(c *gin.Context) {
+	var req struct {
+		Token string `json:"token" binding:"required"`
+		Slug  string `json:"slug" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+	_, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid token",
+		})
+		return
+	}
+	site, err := publish.GetSlug(req.Slug)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(200, gin.H{
+				"code":    "NOTFOUND",
+				"message": "Slug not found",
+			})
+			return
+		}
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, site)
 }

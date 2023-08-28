@@ -21,7 +21,7 @@ func init() {
 			host TEXT NOT NULL,
 			created INTEGER NOT NULL,
 			owner TEXT NOT NULL,
-			slug TEXT NOT NULL,
+			slug TEXT NOT NULL UNIQUE,
 			options TEXT,
 			size INTEGER NOT NULL DEFAULT 0
 		);
@@ -43,7 +43,24 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
+type slugResponse struct {
+	ID   string `json:"id"`
+	Host string `json:"host"`
+	Slug string `json:"slug"`
+}
+
+func GetSlug(slug string) (slugResponse, error) {
+	var (
+		id, host string
+	)
+	err := db.QueryRow("SELECT id, host FROM sites WHERE slug = ?", slug).Scan(&id, &host)
+	return slugResponse{
+		ID:   id,
+		Host: host,
+		Slug: slug,
+	}, err
 }
 
 func GetSites(userEmail string) ([]*Site, error) {
