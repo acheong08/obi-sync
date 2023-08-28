@@ -60,6 +60,21 @@ func ListPublish(c *gin.Context) {
 	})
 }
 
+// The dumbest thing I've ever seen
+func SlugPublish(c *gin.Context) {
+	var req struct {
+		ID   string `json:"id" binding:"required"`
+		Slug string `json:"slug" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+	c.JSON(200, req)
+}
+
 func SlugsPublish(c *gin.Context) {
 	var req struct {
 		Token string   `json:"token" binding:"required"`

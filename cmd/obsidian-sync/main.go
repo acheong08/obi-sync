@@ -51,11 +51,11 @@ func main() {
 
 	publishGroup := router.Group("/publish")
 	// Checks if a site already exists
-	publishGroup.POST("site")
+	publishGroup.POST("site", handlers.SitePublish)
 	// Creates a new site (on host. similar to vault)
 	publishGroup.POST("create")
 	// Configures the slug (name of the site)
-	publishGroup.POST("slug")
+	publishGroup.POST("slug", handlers.SlugPublish)
 	// returns a map of slug id to name
 	publishGroup.POST("slugs", handlers.SlugsPublish)
 	// list files in a site
