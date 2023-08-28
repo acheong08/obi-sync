@@ -8,7 +8,7 @@ import (
 
 const DBPath = "database.db"
 
-var Host = "localhost:3000/ws"
+var Host = "localhost:3000"
 
 var Secret []byte
 

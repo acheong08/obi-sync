@@ -97,7 +97,7 @@ func SetSlug(slug, id string) error {
 }
 
 func GetSites(userEmail string) ([]*Site, error) {
-	var sites []*Site
+	var sites []*Site = make([]*Site, 0)
 	rows, err := db.Query("SELECT id, host, created, size FROM sites WHERE owner = ?", userEmail)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func GetSiteSlug(siteID string) (string, error) {
 }
 
 func GetFiles(siteID string) ([]*File, error) {
-	var files []*File
+	var files []*File = make([]*File, 0)
 	rows, err := db.Query("SELECT ctime, hash, mtime, path, size FROM files WHERE site = ?", siteID)
 	if err != nil {
 		return nil, err

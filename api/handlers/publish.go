@@ -11,12 +11,12 @@ import (
 func ListPublish(c *gin.Context) {
 	var req struct {
 		Token   string `json:"token" binding:"required"`
-		Version string `json:"version"`
+		Version int    `json:"version"`
 		ID      string `json:"id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
-			"error": "invalid request",
+			"error": err.Error(),
 		})
 		return
 	}
