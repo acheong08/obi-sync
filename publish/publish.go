@@ -68,7 +68,12 @@ func GetSiteOwner(siteID string) (string, error) {
 	var email string
 	err := db.QueryRow("SELECT owner FROM sites WHERE id = ?", siteID).Scan(&email)
 	return email, err
+}
 
+func GetSiteSlug(siteID string) (string, error) {
+	var slug string
+	err := db.QueryRow("SELECT slug FROM sites WHERE id = ?", siteID).Scan(&slug)
+	return slug, err
 }
 
 func GetFiles(siteID string) ([]*File, error) {

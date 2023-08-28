@@ -57,7 +57,7 @@ func main() {
 	// Configures the slug (name of the site)
 	publishGroup.POST("slug")
 	// returns a map of slug id to name
-	publishGroup.POST("slugs")
+	publishGroup.POST("slugs", handlers.SlugsPublish)
 	// list files in a site
 	publishGroup.POST("list", handlers.ListPublish)
 
