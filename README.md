@@ -20,7 +20,7 @@ Reverse engineered obsidian sync server (NOT OFFICIAL)
 
 These features are not in the latest release but in the main branch. They might not be fully tested and are probably unstable.
 
-- <N/A>
+- Obsidian publish
 
 ## To do
 
