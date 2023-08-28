@@ -35,7 +35,9 @@ These features are not in the latest release but in the main branch. They might 
 - `go run cmd/obsidian-sync/main.go`
 - Use nginx or cloudflare to proxy & handle TLS/SSL
 
-**HTTPS _should_ be required. I use `certbot` or Cloudflare**. By default, the sync uses `wss` unless you're operating on `localhost` or `127.0.0.1` which breaks if you don't have TLS/SSL
+~~**HTTPS _should_ be required. I use `certbot` or Cloudflare**. By default, the sync uses `wss` unless you're operating on `localhost` or `127.0.0.1` which breaks if you don't have TLS/SSL~~
+
+HTTPS is not required.
 
 When you're done, configure the [plugin](#sync-override-plugin)
 
