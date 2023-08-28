@@ -191,3 +191,66 @@ func SitePublish(c *gin.Context) {
 	}
 	c.JSON(200, site)
 }
+
+func UploadFile(c *gin.Context) {
+	Token := c.Request.Header.Get("obs-token")
+	email, err := utilities.GetJwtEmail(Token)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid token",
+		})
+		return
+	}
+	var file publish.File = publish.File{
+		Size: c.Request.ContentLength,
+		Hash: c.Request.Header.Get("obs-hash"),
+		Site: c.Request.Header.Get("obs-id"),
+		Path: c.Request.Header.Get("obs-path"),
+	}
+	siteOwner, err := publish.GetSiteOwner(file.Site)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if siteOwner != email {
+		c.JSON(403, gin.H{
+			"error": "You do not have permission to upload to this site",
+		})
+	}
+	// Read body as text
+	data, err := c.GetRawData()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	file.Data = data
+	err = publish.NewFile(&file)
+
+}
+
+func GetPublishedFile(c *gin.Context) {
+	// Get slug and path from url
+	slug := c.Param("slug")
+	path := c.Param("path")
+
+	// Get site id from slug
+	site, err := publish.GetSlug(slug)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+	}
+	// Get file from site id and path
+	file, err := publish.GetFile(site.ID, path)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+	}
+	// Return file []byte
+	c.Data(200, "text/markdown; charset=utf-8", file)
+}

@@ -39,19 +39,26 @@ func init() {
 			hash TEXT NOT NULL,
 			mtime INTEGER NOT NULL,
 			size INTEGER NOT NULL,
-			data TEXT NOT NULL,
+			data BLOB NOT NULL,
 			site TEXT NOT NULL,
-			deleted INTEGER NOT NULL DEFAULT 0
+			deleted INTEGER NOT NULL DEFAULT 0,
+			UNIQUE (path, site)
 		);`)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-type slugResponse struct {
-	ID   string `json:"id"`
-	Host string `json:"host"`
-	Slug string `json:"slug"`
+func GetFile(siteID, path string) ([]byte, error) {
+	var data []byte
+	err := db.QueryRow("SELECT data FROM files WHERE site = ? AND path = ?", siteID, path).Scan(&data)
+	return data, err
+}
+func NewFile(file *File) error {
+	file.CTime = time.Now().UnixMilli()
+	file.MTime = time.Now().UnixMilli()
+	_, err := db.Exec("INSERT INTO files (path, ctime, hash, mtime, size, data, site) VALUES (?, ?, ?, ?, ?, ?, ?)", file.Path, file.CTime, file.Hash, file.MTime, file.Size, file.Data, file.Site)
+	return err
 }
 
 func CreateSite(owner string) (*Site, error) {
@@ -64,6 +71,12 @@ func CreateSite(owner string) (*Site, error) {
 	}
 	_, err := db.Exec("INSERT INTO sites (id, host, created, owner, slug) VALUES (?, ?, ?, ?, ?)", site.ID, site.Host, site.Created, site.Owner, site.Slug)
 	return &site, err
+}
+
+type slugResponse struct {
+	ID   string `json:"id"`
+	Host string `json:"host"`
+	Slug string `json:"slug"`
 }
 
 func GetSlug(slug string) (slugResponse, error) {

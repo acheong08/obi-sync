@@ -61,6 +61,9 @@ func main() {
 	// list files in a site
 	publishGroup.POST("list", handlers.ListPublish)
 
+	publishedGroup := router.Group("/published")
+	publishedGroup.GET(":slug/:path", handlers.GetPublishedFile)
+
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
 

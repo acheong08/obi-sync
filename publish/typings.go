@@ -15,6 +15,6 @@ type File struct {
 	Hash  string `json:"hash,omitempty"`
 	MTime int64  `json:"mtime,omitempty"`
 	Size  int64  `json:"size,omitempty"`
-	Data  string `json:"data,omitempty"`
+	Data  []byte `json:"data,omitempty"`
 	Site  string `json:"site,omitempty"`
 }
