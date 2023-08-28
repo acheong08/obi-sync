@@ -49,6 +49,18 @@ func main() {
 	vaultShareGroup.POST("invite", handlers.InviteVaultShare)
 	vaultShareGroup.POST("remove", handlers.RemoveVaultShare)
 
+	publishGroup := router.Group("/publish")
+	// Checks if a site already exists
+	publishGroup.POST("site")
+	// Creates a new site (on host. similar to vault)
+	publishGroup.POST("create")
+	// Configures the slug (name of the site)
+	publishGroup.POST("slug")
+	// returns a map of slug id to name
+	publishGroup.POST("slugs")
+	// list files in a site
+	publishGroup.POST("list")
+
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
 
