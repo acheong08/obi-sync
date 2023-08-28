@@ -60,6 +60,46 @@ func ListPublish(c *gin.Context) {
 	})
 }
 
+func CreatePublish(c *gin.Context) {
+	var req struct {
+		Token string `json:"token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+	email, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid token",
+		})
+	}
+	// Check how many sites the user has
+	sites, err := publish.GetSites(email)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if len(sites) >= 1 {
+		c.JSON(200, gin.H{
+			"error": "You have reached the limit of 1 site",
+		})
+		return
+	}
+	site, err := publish.CreateSite(email)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, site)
+}
+
 // Configures the slug (name of the site)
 func SlugPublish(c *gin.Context) {
 	var req struct {

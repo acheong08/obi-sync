@@ -3,7 +3,10 @@ package publish
 import (
 	"database/sql"
 	"log"
+	"time"
 
+	"github.com/acheong08/obsidian-sync/config"
+	"github.com/google/uuid"
 	_ "modernc.org/sqlite"
 )
 
@@ -49,6 +52,18 @@ type slugResponse struct {
 	ID   string `json:"id"`
 	Host string `json:"host"`
 	Slug string `json:"slug"`
+}
+
+func CreateSite(owner string) (*Site, error) {
+	var site Site = Site{
+		ID:      uuid.New().String(),
+		Host:    config.Host,
+		Created: time.Now().UnixMilli(),
+		Owner:   owner,
+		Slug:    uuid.New().String(),
+	}
+	_, err := db.Exec("INSERT INTO sites (id, host, created, owner, slug) VALUES (?, ?, ?, ?, ?)", site.ID, site.Host, site.Created, site.Owner, site.Slug)
+	return &site, err
 }
 
 func GetSlug(slug string) (slugResponse, error) {

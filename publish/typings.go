@@ -7,7 +7,7 @@ type Site struct {
 	Owner   string `json:"owner,omitempty"`
 	Slug    string `json:"slug,omitempty"`
 	Options string `json:"options,omitempty"`
-	Size    int64  `json:"size,omitempty"`
+	Size    int64  `json:"size"`
 }
 type File struct {
 	Path  string `json:"path,omitempty"`
