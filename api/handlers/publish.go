@@ -60,7 +60,7 @@ func ListPublish(c *gin.Context) {
 	})
 }
 
-// The dumbest thing I've ever seen
+// Configures the slug (name of the site)
 func SlugPublish(c *gin.Context) {
 	var req struct {
 		ID   string `json:"id" binding:"required"`
@@ -69,6 +69,13 @@ func SlugPublish(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
 			"error": "invalid request",
+		})
+		return
+	}
+	err := publish.SetSlug(req.Slug, req.ID)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}

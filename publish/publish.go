@@ -63,6 +63,11 @@ func GetSlug(slug string) (slugResponse, error) {
 	}, err
 }
 
+func SetSlug(slug, id string) error {
+	_, err := db.Exec("UPDATE sites SET slug = ? WHERE id = ?", slug, id)
+	return err
+}
+
 func GetSites(userEmail string) ([]*Site, error) {
 	var sites []*Site
 	rows, err := db.Query("SELECT id, host, created, size FROM sites WHERE owner = ?", userEmail)
