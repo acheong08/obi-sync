@@ -301,6 +301,7 @@ func GetPublishedFile(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	// Get file from site id and path
 	file, err := publish.GetFile(site.ID, path)

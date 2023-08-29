@@ -65,8 +65,7 @@ func main() {
 	publishAPI.POST("upload", handlers.UploadFile)
 	publishAPI.POST("remove", handlers.RemoveFile)
 
-	publishedGroup := router.Group("/published")
-	publishedGroup.GET(":slug/*path", handlers.GetPublishedFile)
+	router.GET(":slug/*path", handlers.GetPublishedFile)
 
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
