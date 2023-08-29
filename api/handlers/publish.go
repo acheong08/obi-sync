@@ -298,6 +298,12 @@ func GetPublishedFile(c *gin.Context) {
 	// Get site id from slug
 	site, err := publish.GetSlug(slug)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(404, gin.H{
+				"error": "Site not found",
+			})
+			return
+		}
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
