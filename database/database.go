@@ -81,14 +81,10 @@ func NewDatabase() *Database {
 		if err != nil {
 			panic(err)
 		}
-		dbConnection := &Database{
+
+		return &Database{
 			DBConnection: db,
 		}
-		err = dbConnection.NewUser("example@example.com", "example", "Example User")
-		if err != nil {
-			panic(err)
-		}
-		return dbConnection
 
 	} else {
 		// Connect to the database
