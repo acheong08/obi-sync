@@ -101,7 +101,7 @@ func SignUp(c *gin.Context) {
 	err := dbConnection.NewUser(req.Email, strings.TrimSpace(req.Password), req.FullName)
 
 	if err != nil {
-		c.JSON(400, gin.H{"error": "not sign up!"})
+		c.JSON(500, gin.H{"error": "not sign up!"})
 		return
 	}
 
