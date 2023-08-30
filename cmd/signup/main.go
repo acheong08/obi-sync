@@ -29,12 +29,7 @@ func main() {
 		panic(err)
 	}
 
-	// Strip newline characters
-	name = strings.Trim(name, "\n")
-	email = strings.Trim(email, "\n")
-	password = []byte(strings.Trim(string(password), "\n"))
-
-	err = vault.NewUser(email, string(password), name)
+	err = vault.NewUser(strings.Trim(email, "\n"), strings.Trim(string(password), "\n"), strings.Trim(name, "\n"))
 	if err != nil {
 		panic(err)
 	}
