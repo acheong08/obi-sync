@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/rand"
 	"encoding/gob"
+	"log"
 	"os"
 	"path"
 )
@@ -22,8 +23,12 @@ var SignUpKey string
 // Generate a random password, hash it, and store it in the Secret variable & a file
 // Load secret.gob if it exists
 func init() {
-	if os.Getenv("HOST") != "" {
+	if os.Getenv("HOST") != "" { // Legacy. Use DOMAIN_NAME instead
+		log.Println("Warning: HOST is deprecated. Use DOMAIN_NAME instead")
 		Host = os.Getenv("HOST")
+	}
+	if os.Getenv("DOMAIN_NAME") != "" {
+		Host = os.Getenv("DOMAIN_NAME")
 	}
 	if os.Getenv("ADDR_HTTP") != "" {
 		AddressHttp = os.Getenv("ADDR_HTTP")
