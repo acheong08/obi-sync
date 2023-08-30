@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/url"
 
-	"github.com/acheong08/obsidian-sync/publish"
+	"github.com/acheong08/obsidian-sync/database/publish"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
 )

@@ -11,7 +11,7 @@ import (
 
 	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/cryptography"
-	"github.com/acheong08/obsidian-sync/vault"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"

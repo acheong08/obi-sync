@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/acheong08/obsidian-sync/utilities"
-	"github.com/acheong08/obsidian-sync/vault"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )

@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/acheong08/obsidian-sync/utilities"
-	"github.com/acheong08/obsidian-sync/vault"
 	"github.com/gin-gonic/gin"
 	password_generator "github.com/sethvargo/go-password/password"
 )
