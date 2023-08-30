@@ -12,7 +12,7 @@ var SecretPath = "secret.gob"
 
 var Host = "localhost:3000"
 
-var AddressHttp = "0.0.0.0:3000"
+var AddressHttp = "127.0.0.1:3000"
 
 var DataDir = "."
 
