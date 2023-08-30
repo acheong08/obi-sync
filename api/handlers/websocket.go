@@ -67,7 +67,7 @@ func WsHandler(c *gin.Context) {
 	}
 	defer ws.Close()
 
-	// Recieve initialization message
+	// Receive initialization message
 	msg, err := getMsg(ws)
 	if err != nil {
 		// Send error message
