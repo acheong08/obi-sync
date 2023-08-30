@@ -30,7 +30,7 @@ func Signin(c *gin.Context) {
 	userInfo, err := vault.Login(req.Email, req.Password)
 	if err != nil {
 		// 200 because the app doesn't check the status code.
-		c.JSON(200, gin.H{"error": "Login failed, please double check your email and password."})
+		c.JSON(200, gin.H{"error": err.Error()})
 		return
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -38,6 +38,7 @@ func Signin(c *gin.Context) {
 	}).SignedString(config.Secret)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(200, response{
 		Email:   userInfo.Email,
