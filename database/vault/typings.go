@@ -1,7 +1,7 @@
 package vault
 
 type Vault struct {
-	ID        string `json:"id,omitempty"`
+	ID        string `json:"id,omitempty" gorm:"primaryKey;autoIncrement"`
 	UserEmail string `json:"user_email,omitempty"`
 	Created   int64  `json:"created,omitempty"`
 	Host      string `json:"host,omitempty"`
@@ -20,11 +20,4 @@ type Share struct {
 	Name     string `json:"name,omitempty"`
 	VaultID  string `json:"vault_id,omitempty"`
 	Accepted bool   `json:"accepted,omitempty"`
-}
-
-type User struct {
-	Name     string `json:"name,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
-	License  string `json:"license,omitempty"`
 }

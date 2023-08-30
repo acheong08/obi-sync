@@ -37,6 +37,7 @@ func ListVaults(c *gin.Context) {
 	shared, err := vault.GetSharedVaults(email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(200, response{
 		Shared: shared,

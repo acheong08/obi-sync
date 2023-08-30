@@ -24,7 +24,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.AutoMigrate(&User{}, &Vault{}, &Share{})
+	err = db.AutoMigrate(&user.User{}, &Vault{}, &Share{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func GetSharedVaults(userEmail string) ([]*Vault, error) {
 	// 	vaults = append(vaults, vault)
 	// }
 	vaultIDs := []string{}
-	err := db.Select("vault_id").Where("email = ?", userEmail).Find(&vaultIDs).Error
+	err := db.Model(&Share{}).Where("email = ?", userEmail).Select("vault_id").Scan(&vaultIDs).Error
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func NewUser(email, password, name string) error {
 		return err
 	}
 	// _, err = db.DBConnection.Exec("INSERT INTO users (name, email, password, license) VALUES (?, ?, ?, ?)", name, email, hash, "")
-	err = db.Create(&User{
+	err = db.Create(&user.User{
 		Name:     name,
 		Email:    email,
 		Password: string(hash),
@@ -204,24 +204,22 @@ func NewUser(email, password, name string) error {
 func UserInfo(email string) (*user.User, error) {
 	var userInfo user.User
 	// err := db.DBConnection.QueryRow("SELECT name, license FROM users WHERE email = ?", email).Scan(&name, &license)
-	err := db.Model(&User{}).Where("email = ?", email).Select("name, license").Scan(&userInfo).Error
+	err := db.Model(&user.User{}).Where("email = ?", email).Select("name, license").Scan(&userInfo).Error
 	return &userInfo, err
 }
 func Login(email, password string) (*user.User, error) {
 	// Get user from database
-	var hash string
 	var user user.User
 	// err := db.DBConnection.QueryRow("SELECT license, name, password FROM users WHERE email = ?", email).Scan(&user.License, &user.Name, &hash)
-	err := db.Model(&User{}).Where("email = ?", email).Select("license, name, password").Scan(&user).Error
+	err := db.First(&user, "email = ?", email).Error
 	if err != nil {
 		return nil, err
 	}
 	// Compare password hash
-	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, err
 	}
-	user.Email = email
 	return &user, nil
 }
 
