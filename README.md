@@ -27,8 +27,8 @@ These features are not in the latest release but in the main branch. They might 
 - Fix bugs
 - Publish
 
-
 ## Setup
+
 - `git clone https://github.com/acheong08/obsidian-sync`
 - `cd obsidian-sync`
 - `export HOST=<YOUR DOMAIN NAME>` - Not necessary when running on localhost
@@ -53,8 +53,8 @@ map $http_upgrade $connection_upgrade {
         '' close;
 }
 server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
+	listen 80;
+	listen [::]:80;
 	location / {
 		proxy_http_version 1.1;
             	proxy_set_header Upgrade $http_upgrade;
@@ -62,7 +62,20 @@ server {
            	proxy_set_header Host $host;
 		proxy_pass http://127.0.0.1:3000/;
 	}
-	server_name _;
+	server_name <your domain name>; # e.g. api.obsidian.md
+}
+# This is for obsidian publish (Optional)
+server {
+	listen 80;
+	listen [::]:80;
+	location / {
+		proxy_http_version 1.1;
+            	proxy_set_header Upgrade $http_upgrade;
+            	proxy_set_header Connection $connection_upgrade;
+           	proxy_set_header Host $host;
+		proxy_pass http://127.0.0.1:3000/published/;
+	}
+	server_name <another domain name>; # e.g. publish.obsidian.md
 }
 ```
 
@@ -88,8 +101,8 @@ This plugin will not be part of the official community plugins list.
 - Install https://github.com/acheong08/rev-obsidian-sync-plugin
 - Go to settings
 - Set API endpoint
-	- e.g. `https://obsidian.yourdomain.com`
- 	- For development: `http://127.0.0.1:3000` 
+  - e.g. `https://obsidian.yourdomain.com`
+  - For development: `http://127.0.0.1:3000`
 
 Known bugs:
 
