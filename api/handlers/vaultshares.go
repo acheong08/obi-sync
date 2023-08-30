@@ -28,7 +28,7 @@ func InviteVaultShare(c *gin.Context) {
 
 	// Make invite
 
-	if !vault.HasAccessToVault(email, req.VaultID) {
+	if !vault.HasAccessToVault(req.VaultID, email) {
 		c.JSON(401, gin.H{
 			"error": "You do not have access to this vault",
 		})
@@ -70,7 +70,7 @@ func ListVaultShares(c *gin.Context) {
 		return
 	}
 
-	if !vault.HasAccessToVault(email, req.VaultID) {
+	if !vault.HasAccessToVault(req.VaultID, email) {
 		c.JSON(401, gin.H{
 			"error": "You do not have access to this vault",
 		})
@@ -116,7 +116,7 @@ func RemoveVaultShare(c *gin.Context) {
 			return
 		}
 	} else {
-		if !vault.HasAccessToVault(email, req.VaultUID) {
+		if !vault.HasAccessToVault(req.VaultUID, email) {
 			c.JSON(401, gin.H{
 				"error": "You do not have access to this vault",
 			})

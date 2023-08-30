@@ -77,6 +77,7 @@ func GetSharedVaults(userEmail string) ([]*Vault, error) {
 
 func HasAccessToVault(vaultID, userEmail string) bool {
 	if IsVaultOwner(vaultID, userEmail) {
+		log.Println("Is vault owner")
 		return true
 	}
 
@@ -94,9 +95,13 @@ func HasAccessToVault(vaultID, userEmail string) bool {
 func IsVaultOwner(vaultID, userEmail string) bool {
 	var email string
 	// Check vaults table
-	// db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
-	err := db.Model(&Vault{}).Where("id = ?", vaultID).Select("user_email").Scan(&email).Error
-	return email == userEmail && err == nil
+	err := db.Model(&Vault{}).Select("user_email").Where("id = ?", vaultID).First(&email).Error
+	if err != nil {
+		log.Println(vaultID)
+		log.Println(err.Error())
+		return false
+	}
+	return email == userEmail
 }
 
 func NewUser(email, password, name string) error {
