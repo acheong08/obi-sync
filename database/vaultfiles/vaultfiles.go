@@ -135,6 +135,10 @@ func InsertData(uid int, data *[]byte) error {
 }
 
 func DeleteVaultFile(path string) error {
-	err := db.Model(&File{}).Where("path = ?", path).Update("deleted", 1).Error
+	// Set deleted to true and is_snapshot to true
+	err := db.Model(&File{}).Where("path = ?", path).Updates(File{
+		Deleted:    true,
+		IsSnapshot: true,
+	}).Error
 	return err
 }
