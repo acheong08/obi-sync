@@ -4,11 +4,18 @@ import (
 	"crypto/rand"
 	"encoding/gob"
 	"os"
+	"path"
 )
 
-const DBPath = "database.db"
+var DBPath = "database.db"
+
+var SecretPath = "secret.gob"
 
 var Host = "localhost:3000"
+
+var AddressHttp = "0.0.0.0:3000"
+
+var DataDir = "."
 
 var Secret []byte
 
@@ -18,10 +25,27 @@ func init() {
 	if os.Getenv("HOST") != "" {
 		Host = os.Getenv("HOST")
 	}
-	if _, err := os.Stat("secret.gob"); err != nil {
+	if os.Getenv("ADDR_HTTP") != "" {
+		AddressHttp = os.Getenv("ADDR_HTTP")
+	}
+	if os.Getenv("DATA_DIR") != "" {
+		DataDir = os.Getenv("DATA_DIR")
+
+		if _, err := os.Stat(DataDir); os.IsNotExist(err) {
+			err := os.Mkdir(DataDir, os.ModePerm)
+
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		DBPath = path.Join(DataDir, "database.db")
+		SecretPath = path.Join(DataDir, "secret.gob")
+	}
+	if _, err := os.Stat(SecretPath); err != nil {
 		Secret = make([]byte, 64)
 		rand.Read(Secret)
-		f, err := os.Create("secret.gob")
+		f, err := os.Create(SecretPath)
 		if err != nil {
 			panic(err)
 		}
@@ -32,7 +56,7 @@ func init() {
 			panic(err)
 		}
 	} else {
-		f, err := os.Open("secret.gob")
+		f, err := os.Open(SecretPath)
 		if err != nil {
 			panic(err)
 		}
