@@ -27,8 +27,8 @@ func init() {
 
 func GetFile(siteID, path string) ([]byte, error) {
 	var data []byte
-	// err := db.QueryRow("SELECT data FROM files WHERE site = ? AND path = ?", siteID, path).Scan(&data)
-	err := db.Model(&File{}).Select("data").Where("site = ? AND path = ?", siteID, path).First(&data).Error
+	// err := db.QueryRow("SELECT data FROM files WHERE slug = ? AND path = ?", siteID, path).Scan(&data)
+	err := db.Model(&File{}).Select("data").Where("slug = ? AND path = ?", siteID, path).First(&data).Error
 	return data, err
 }
 func NewFile(file *File) error {
@@ -38,15 +38,15 @@ func NewFile(file *File) error {
 
 	// Create with ON CONFLICT REPLACE
 	err := db.Model(&File{}).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "path"}, {Name: "site"}},
+		Columns:   []clause.Column{{Name: "path"}, {Name: "slug"}},
 		UpdateAll: true,
 	}).Create(file).Error
 	return err
 }
 
 func RemoveFile(siteID, path string) error {
-	// _, err := db.Exec("DELETE FROM files WHERE site = ? AND path = ?", siteID, path)
-	err := db.Model(&File{}).Where("site = ? AND path = ?", siteID, path).Delete(&File{}).Error
+	// _, err := db.Exec("DELETE FROM files WHERE slug = ? AND path = ?", siteID, path)
+	err := db.Model(&File{}).Where("slug = ? AND path = ?", siteID, path).Delete(&File{}).Error
 	return err
 }
 
@@ -72,7 +72,7 @@ type slugResponse struct {
 func GetSlug(slug string) (slugResponse, error) {
 	// err := db.QueryRow("SELECT id, host FROM sites WHERE slug = ?", slug).Scan(&id, &host)
 	var site slugResponse
-	err := db.Select("id, host, slug").Where("slug = ?", slug).First(&site).Error
+	err := db.Model(&Site{}).Select("id, host, slug").Where("slug = ?", slug).First(&site).Error
 	return site, err
 }
 
@@ -84,52 +84,26 @@ func SetSlug(slug, id string) error {
 
 func GetSites(userEmail string) ([]*Site, error) {
 	var sites []*Site = make([]*Site, 0)
-	// rows, err := db.Query("SELECT id, host, created, size FROM sites WHERE owner = ?", userEmail)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	var site Site
-	// 	err := rows.Scan(&site.ID, &site.Host, &site.Created, &site.Size)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	sites = append(sites, &site)
-	// }
-	err := db.Select("id, host, created, size").Where("owner = ?", userEmail).Find(&sites).Error
+	err := db.Model(&Site{}).Select("id, host, created, size").Where("owner = ?", userEmail).Find(&sites).Error
 	return sites, err
 
 }
 func GetSiteOwner(siteID string) (string, error) {
 	var email string
 	// err := db.QueryRow("SELECT owner FROM sites WHERE id = ?", siteID).Scan(&email)
-	err := db.Select("owner").Where("id = ?", siteID).First(&email).Error
+	err := db.Model(&Site{}).Select("owner").Where("id = ?", siteID).First(&email).Error
 	return email, err
 }
 
 func GetSiteSlug(siteID string) (string, error) {
 	var slug string
 	// err := db.QueryRow("SELECT slug FROM sites WHERE id = ?", siteID).Scan(&slug)
-	err := db.Select("slug").Where("id = ?", siteID).First(&slug).Error
+	err := db.Model(&Site{}).Select("slug").Where("id = ?", siteID).First(&slug).Error
 	return slug, err
 }
 
 func GetFiles(siteID string) ([]*File, error) {
 	var files []*File = make([]*File, 0)
-	// rows, err := db.Query("SELECT ctime, hash, mtime, path, size FROM files WHERE site = ?", siteID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	var file File
-	// 	err := rows.Scan(&file.CTime, &file.Hash, &file.MTime, &file.Path, &file.Size)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	files = append(files, &file)
-	// }
-	err := db.Select("ctime, hash, mtime, path, size").Where("site = ?", siteID).Find(&files).Error
+	err := db.Model(&File{}).Select("c_time, hash, m_time, path, size").Where("slug = ?", siteID).Find(&files).Error
 	return files, err
 }

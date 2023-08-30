@@ -47,6 +47,7 @@ func ListPublish(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	files, err := publish.GetFiles(req.ID)
 	if err != nil {
