@@ -7,8 +7,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/acheong08/obsidian-sync/user"
-
 	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/cryptography"
 	"github.com/glebarez/sqlite"
@@ -24,64 +22,10 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.AutoMigrate(&user.User{}, &Vault{}, &Share{})
+	err = db.AutoMigrate(&User{}, &Vault{}, &Share{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	// // Check if the database file exists
-	// if _, err := os.Stat(config.DBPath); os.IsNotExist(err) {
-	// 	db, err := sql.Open("sqlite", config.DBPath)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	// Create users table
-	// 	_, err = db.Exec(`CREATE TABLE users (
-	// 		name TEXT NOT NULL,
-	// 		email TEXT PRIMARY KEY NOT NULL,
-	// 		password TEXT NOT NULL,
-	// 		license TEXT NOT NULL
-	// 		)`)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	// Create vaults table
-	// 	_, err = db.Exec(`CREATE TABLE vaults (
-	// 		id TEXT PRIMARY KEY,
-	// 		user_email TEXT NOT NULL,
-	// 		created INTEGER NOT NULL,
-	// 		host TEXT NOT NULL,
-	// 		name TEXT NOT NULL,
-	// 		password TEXT NOT NULL,
-	// 		salt TEXT NOT NULL,
-	// 		version INTEGER NOT NULL DEFAULT 0,
-	// 		keyhash TEXT NOT NULL
-	// 	)`)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	// Create vault_shares table
-	// 	_, err = db.Exec(`CREATE TABLE shares (
-	// 		id TEXT PRIMARY KEY,
-	// 		email TEXT NOT NULL,
-	// 		name TEXT NOT NULL,
-	// 		vault_id TEXT NOT NULL,
-	// 		accepted INTEGER NOT NULL DEFAULT 1
-	// 	)
-	// 	`)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// } else {
-	// 	// Connect to the database
-	// 	dbConnection, err := sql.Open("sqlite", config.DBPath)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	db = &Database{
-	// 		DBConnection: dbConnection,
-	// 	}
-	// }
 }
 func ShareVaultInvite(email, name, vaultID string) error {
 	shareID := uuid.New().String()
@@ -193,7 +137,7 @@ func NewUser(email, password, name string) error {
 		return err
 	}
 	// _, err = db.DBConnection.Exec("INSERT INTO users (name, email, password, license) VALUES (?, ?, ?, ?)", name, email, hash, "")
-	err = db.Create(&user.User{
+	err = db.Create(&User{
 		Name:     name,
 		Email:    email,
 		Password: string(hash),
@@ -201,15 +145,15 @@ func NewUser(email, password, name string) error {
 	}).Error
 	return err
 }
-func UserInfo(email string) (*user.User, error) {
-	var userInfo user.User
+func UserInfo(email string) (*User, error) {
+	var userInfo User
 	// err := db.DBConnection.QueryRow("SELECT name, license FROM users WHERE email = ?", email).Scan(&name, &license)
-	err := db.Model(&user.User{}).Where("email = ?", email).Select("name, license").Scan(&userInfo).Error
+	err := db.Model(&User{}).Where("email = ?", email).Select("name, license").Scan(&userInfo).Error
 	return &userInfo, err
 }
-func Login(email, password string) (*user.User, error) {
+func Login(email, password string) (*User, error) {
 	// Get user from database
-	var user user.User
+	var user User
 	// err := db.DBConnection.QueryRow("SELECT license, name, password FROM users WHERE email = ?", email).Scan(&user.License, &user.Name, &hash)
 	err := db.First(&user, "email = ?", email).Error
 	if err != nil {

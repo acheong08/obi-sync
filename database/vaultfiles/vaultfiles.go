@@ -17,25 +17,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// // Create tables if they don't exist
-	// _, err = db.Exec(`
-	// 	CREATE TABLE IF NOT EXISTS files (
-	// 		uid INTEGER PRIMARY KEY AUTOINCREMENT,
-	// 		vault_id TEXT,
-	// 		hash TEXT,
-	// 		path TEXT,
-	// 		extension TEXT,
-	// 		size INTEGER,
-	// 		created INTEGER,
-	// 		modified INTEGER,
-	// 		folder INTEGER,
-	// 		deleted INTEGER,
-	// 		data BLOB,
-	// 		newest INTEGER NOT NULL DEFAULT 1,
-	// 		is_snapshot INTEGER NOT NULL DEFAULT 0
-	// 	);
-	// `)
 	db.AutoMigrate(&File{})
 	if err != nil {
 		log.Fatal(err)
