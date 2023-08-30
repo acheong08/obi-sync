@@ -29,10 +29,10 @@ func init() {
 	}
 }
 func ShareVaultInvite(email, name, vaultID string) error {
-	shareID := uuid.New().String()
-	// _, err := db.DBConnection.Exec("INSERT INTO shares (id, email, name, vault_id) VALUES (?, ?, ?, ?)", shareID, email, name, vaultID)
+	shareUID := uuid.New().String()
+	// _, err := db.DBConnection.Exec("INSERT INTO shares (id, email, name, vault_id) VALUES (?, ?, ?, ?)", shareUID, email, name, vaultID)
 	err := db.Create(&Share{
-		UID:     shareID,
+		UID:     shareUID,
 		Email:   email,
 		Name:    name,
 		VaultID: vaultID,
@@ -40,11 +40,11 @@ func ShareVaultInvite(email, name, vaultID string) error {
 	return err
 }
 
-func ShareVaultRevoke(shareID, vaultID, userEmail string) error {
+func ShareVaultRevoke(shareUID, vaultID, userEmail string) error {
 	var err error
-	if shareID != "" {
-		// _, err = db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareID, vaultID)
-		err = db.Where("id = ? AND vault_id = ?", shareID, vaultID).Delete(&Share{}).Error
+	if shareUID != "" {
+		// _, err = db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareUID, vaultID)
+		err = db.Where("uid = ? AND vault_id = ?", shareUID, vaultID).Delete(&Share{}).Error
 	} else {
 		// _, err = db.DBConnection.Exec("DELETE FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail)
 		err = db.Where("vault_id = ? AND email = ?", vaultID, userEmail).Delete(&Share{}).Error
@@ -54,7 +54,7 @@ func ShareVaultRevoke(shareID, vaultID, userEmail string) error {
 
 func GetVaultShares(vaultID string) ([]*Share, error) {
 	shares := []*Share{}
-	err := db.Select("id, email, name, accepted").Where("vault_id = ?", vaultID).Find(&shares).Error
+	err := db.Model(&Share{}).Select("uid, email, name, accepted").Where("vault_id = ?", vaultID).Find(&shares).Error
 	return shares, err
 }
 
