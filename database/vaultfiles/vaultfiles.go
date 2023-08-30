@@ -71,7 +71,6 @@ func GetVaultSize(vaultID string) (int, error) {
 	// err := db.QueryRow("SELECT COALESCE(SUM(size), 0) FROM files WHERE vault_id = ?", vaultID).Scan(&size)
 	err := db.Model(&File{}).Select("COALESCE(SUM(size), 0)").Where("vault_id = ?", vaultID).First(&size).Error
 	if err != nil {
-		log.Println(err.Error())
 		return 0, err
 	}
 	return size, nil
