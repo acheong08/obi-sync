@@ -23,6 +23,7 @@ func main() {
 		})
 	})
 	userGroup := router.Group("/user")
+	userGroup.POST("signup", handlers.SignUp)
 	userGroup.POST("signin", handlers.Signin)
 	userGroup.POST("signout", func(c *gin.Context) {
 		c.JSON(200, gin.H{})
