@@ -247,7 +247,7 @@ func UploadFile(c *gin.Context) {
 	var file publish.File = publish.File{
 		Size: c.Request.ContentLength,
 		Hash: c.Request.Header.Get("obs-hash"),
-		Site: c.Request.Header.Get("obs-id"),
+		Slug: c.Request.Header.Get("obs-id"),
 		Path: c.Request.Header.Get("obs-path"),
 	}
 	// Path is URL encoded. Unencode it
@@ -258,7 +258,7 @@ func UploadFile(c *gin.Context) {
 		})
 		return
 	}
-	siteOwner, err := publish.GetSiteOwner(file.Site)
+	siteOwner, err := publish.GetSiteOwner(file.Slug)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),

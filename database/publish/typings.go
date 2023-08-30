@@ -10,11 +10,12 @@ type Site struct {
 	Size    int64  `json:"size"`
 }
 type File struct {
-	Path  string `json:"path,omitempty"`
-	CTime int64  `json:"ctime,omitempty"`
-	Hash  string `json:"hash,omitempty"`
-	MTime int64  `json:"mtime,omitempty"`
-	Size  int64  `json:"size,omitempty"`
-	Data  []byte `json:"data,omitempty"`
-	Site  string `json:"site,omitempty"`
+	Path    string `json:"path,omitempty" gorm:"uniqueIndex:idx_path_site"`
+	CTime   int64  `json:"ctime,omitempty"`
+	Hash    string `json:"hash,omitempty"`
+	MTime   int64  `json:"mtime,omitempty"`
+	Size    int64  `json:"size,omitempty"`
+	Data    []byte `json:"data,omitempty"`
+	Slug    string `json:"site,omitempty" gorm:"uniqueIndex:idx_path_site"`
+	Deleted bool   `json:"deleted"`
 }

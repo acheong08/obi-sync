@@ -1,152 +1,158 @@
 package vault
 
 import (
-	"database/sql"
 	"errors"
 	"log"
-	"os"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/acheong08/obsidian-sync/user"
 
 	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/cryptography"
-	vault "github.com/acheong08/obsidian-sync/database/vaultfiles"
+	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	_ "modernc.org/sqlite"
 )
 
-type Database struct {
-	DBConnection *sql.DB
-}
-
-var db *Database
+var db *gorm.DB
 
 func init() {
-	// Check if the database file exists
-	if _, err := os.Stat(config.DBPath); os.IsNotExist(err) {
-		db, err := sql.Open("sqlite", config.DBPath)
-		if err != nil {
-			panic(err)
-		}
-		// Create users table
-		_, err = db.Exec(`CREATE TABLE users (
-			name TEXT NOT NULL,
-			email TEXT PRIMARY KEY NOT NULL,
-			password TEXT NOT NULL,
-			license TEXT NOT NULL
-			)`)
-		if err != nil {
-			panic(err)
-		}
-		// Create vaults table
-		_, err = db.Exec(`CREATE TABLE vaults (
-			id TEXT PRIMARY KEY,
-			user_email TEXT NOT NULL,
-			created INTEGER NOT NULL,
-			host TEXT NOT NULL,
-			name TEXT NOT NULL,
-			password TEXT NOT NULL,
-			salt TEXT NOT NULL,
-			version INTEGER NOT NULL DEFAULT 0,
-			keyhash TEXT NOT NULL
-		)`)
-		if err != nil {
-			panic(err)
-		}
-		// Create vault_shares table
-		_, err = db.Exec(`CREATE TABLE shares (
-			id TEXT PRIMARY KEY,
-			email TEXT NOT NULL,
-			name TEXT NOT NULL,
-			vault_id TEXT NOT NULL,
-			accepted INTEGER NOT NULL DEFAULT 1
-		)
-		`)
-		if err != nil {
-			panic(err)
-		}
-		// Create files metadata table
-		_, err = db.Exec(`CREATE TABLE files (
-			vault_id TEXT NOT NULL,
-			path TEXT NOT NULL,
-			extension TEXT NOT NULL,
-			hash TEXT NOT NULL,
-			ctime INTEGER NOT NULL,
-			mtime INTEGER NOT NULL,
-			folder INTEGER NOT NULL,
-			deleted INTEGER NOT NULL,
-			size INTEGER NOT NULL,
-			PRIMARY KEY (vault_id, path)
-		)`)
-		if err != nil {
-			panic(err)
-		}
-
-	} else {
-		// Connect to the database
-		dbConnection, err := sql.Open("sqlite", config.DBPath)
-		if err != nil {
-			panic(err)
-		}
-		db = &Database{
-			DBConnection: dbConnection,
-		}
+	var err error
+	db, err = gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
 	}
-}
+	err = db.AutoMigrate(&User{}, &Vault{}, &Share{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	// // Check if the database file exists
+	// if _, err := os.Stat(config.DBPath); os.IsNotExist(err) {
+	// 	db, err := sql.Open("sqlite", config.DBPath)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	// Create users table
+	// 	_, err = db.Exec(`CREATE TABLE users (
+	// 		name TEXT NOT NULL,
+	// 		email TEXT PRIMARY KEY NOT NULL,
+	// 		password TEXT NOT NULL,
+	// 		license TEXT NOT NULL
+	// 		)`)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	// Create vaults table
+	// 	_, err = db.Exec(`CREATE TABLE vaults (
+	// 		id TEXT PRIMARY KEY,
+	// 		user_email TEXT NOT NULL,
+	// 		created INTEGER NOT NULL,
+	// 		host TEXT NOT NULL,
+	// 		name TEXT NOT NULL,
+	// 		password TEXT NOT NULL,
+	// 		salt TEXT NOT NULL,
+	// 		version INTEGER NOT NULL DEFAULT 0,
+	// 		keyhash TEXT NOT NULL
+	// 	)`)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	// Create vault_shares table
+	// 	_, err = db.Exec(`CREATE TABLE shares (
+	// 		id TEXT PRIMARY KEY,
+	// 		email TEXT NOT NULL,
+	// 		name TEXT NOT NULL,
+	// 		vault_id TEXT NOT NULL,
+	// 		accepted INTEGER NOT NULL DEFAULT 1
+	// 	)
+	// 	`)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-func Close() {
-	db.DBConnection.Close()
+	// } else {
+	// 	// Connect to the database
+	// 	dbConnection, err := sql.Open("sqlite", config.DBPath)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	db = &Database{
+	// 		DBConnection: dbConnection,
+	// 	}
+	// }
 }
-
 func ShareVaultInvite(email, name, vaultID string) error {
 	shareID := uuid.New().String()
-	_, err := db.DBConnection.Exec("INSERT INTO shares (id, email, name, vault_id) VALUES (?, ?, ?, ?)", shareID, email, name, vaultID)
+	// _, err := db.DBConnection.Exec("INSERT INTO shares (id, email, name, vault_id) VALUES (?, ?, ?, ?)", shareID, email, name, vaultID)
+	err := db.Create(&Share{
+		UID:     shareID,
+		Email:   email,
+		Name:    name,
+		VaultID: vaultID,
+	}).Error
 	return err
 }
 
 func ShareVaultRevoke(shareID, vaultID, userEmail string) error {
 	var err error
 	if shareID != "" {
-		_, err = db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareID, vaultID)
+		// _, err = db.DBConnection.Exec("DELETE FROM shares WHERE id = ? AND vault_id = ?", shareID, vaultID)
+		err = db.Where("id = ? AND vault_id = ?", shareID, vaultID).Delete(&Share{}).Error
 	} else {
-		_, err = db.DBConnection.Exec("DELETE FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail)
+		// _, err = db.DBConnection.Exec("DELETE FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail)
+		err = db.Where("vault_id = ? AND email = ?", vaultID, userEmail).Delete(&Share{}).Error
 	}
 	return err
 }
 
-func GetVaultShares(vaultID string) ([]*vault.Share, error) {
-	rows, err := db.DBConnection.Query("SELECT id, email, name, accepted FROM shares WHERE vault_id = ?", vaultID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	shares := []*vault.Share{}
-	for rows.Next() {
-		share := &vault.Share{}
-		err = rows.Scan(&share.UID, &share.Email, &share.Name, &share.Accepted)
-		if err != nil {
-			return nil, err
-		}
-		shares = append(shares, share)
-	}
-	return shares, nil
+func GetVaultShares(vaultID string) ([]*Share, error) {
+	shares := []*Share{}
+	// rows, err := db.DBConnection.Query("SELECT id, email, name, accepted FROM shares WHERE vault_id = ?", vaultID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+	//
+	// for rows.Next() {
+	// 	share := &Share{}
+	// 	err = rows.Scan(&share.UID, &share.Email, &share.Name, &share.Accepted)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	shares = append(shares, share)
+	// }
+	err := db.Select("id, email, name, accepted").Where("vault_id = ?", vaultID).Find(&shares).Error
+	return shares, err
 }
 
-func GetSharedVaults(userEmail string) ([]*vault.Vault, error) {
-	rows, err := db.DBConnection.Query("SELECT vault_id FROM shares WHERE email = ?", userEmail)
+func GetSharedVaults(userEmail string) ([]*Vault, error) {
+	vaults := []*Vault{}
+	// rows, err := db.DBConnection.Query("SELECT vault_id FROM shares WHERE email = ?", userEmail)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+	//
+	// for rows.Next() {
+	// 	var vaultID string
+	// 	err = rows.Scan(&vaultID)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	vault, err := GetVault(vaultID, "")
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	vaults = append(vaults, vault)
+	// }
+	vaultIDs := []string{}
+	err := db.Select("vault_id").Where("email = ?", userEmail).Find(&vaultIDs).Error
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	vaults := []*vault.Vault{}
-	for rows.Next() {
-		var vaultID string
-		err = rows.Scan(&vaultID)
-		if err != nil {
-			return nil, err
-		}
+	for _, vaultID := range vaultIDs {
 		vault, err := GetVault(vaultID, "")
 		if err != nil {
 			return nil, err
@@ -162,20 +168,22 @@ func HasAccessToVault(vaultID, userEmail string) bool {
 	}
 
 	// Check shares table
-	var count int
-	err := db.DBConnection.QueryRow("SELECT COUNT(*) FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail).Scan(&count)
+	var count int64
+	// err := db.DBConnection.QueryRow("SELECT COUNT(*) FROM shares WHERE vault_id = ? AND email = ?", vaultID, userEmail).Scan(&count)
+	err := db.Model(&Share{}).Where("vault_id = ? AND email = ?", vaultID, userEmail).Count(&count).Error
 	if err != nil {
 		log.Println(err.Error())
 		return false
 	}
-	return true
+	return count > 0
 }
 
 func IsVaultOwner(vaultID, userEmail string) bool {
 	var email string
 	// Check vaults table
-	db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
-	return email == userEmail
+	// db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
+	err := db.Model(&Vault{}).Where("id = ?", vaultID).Select("user_email").Scan(&email)
+	return email == userEmail && err == nil
 }
 
 func NewUser(email, password, name string) error {
@@ -184,26 +192,27 @@ func NewUser(email, password, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.DBConnection.Exec("INSERT INTO users (name, email, password, license) VALUES (?, ?, ?, ?)", name, email, hash, "")
+	// _, err = db.DBConnection.Exec("INSERT INTO users (name, email, password, license) VALUES (?, ?, ?, ?)", name, email, hash, "")
+	err = db.Create(&User{
+		Name:     name,
+		Email:    email,
+		Password: string(hash),
+		License:  "",
+	}).Error
 	return err
 }
 func UserInfo(email string) (*user.User, error) {
-	var name string
-	var license string
-	err := db.DBConnection.QueryRow("SELECT name, license FROM users WHERE email = ?", email).Scan(&name, &license)
-	if err != nil {
-		return nil, err
-	}
-	return &user.User{
-		Name:    name,
-		License: license,
-	}, nil
+	var userInfo user.User
+	// err := db.DBConnection.QueryRow("SELECT name, license FROM users WHERE email = ?", email).Scan(&name, &license)
+	err := db.Model(&User{}).Where("email = ?", email).Select("name, license").Scan(&userInfo).Error
+	return &userInfo, err
 }
 func Login(email, password string) (*user.User, error) {
 	// Get user from database
 	var hash string
 	var user user.User
-	err := db.DBConnection.QueryRow("SELECT license, name, password FROM users WHERE email = ?", email).Scan(&user.License, &user.Name, &hash)
+	// err := db.DBConnection.QueryRow("SELECT license, name, password FROM users WHERE email = ?", email).Scan(&user.License, &user.Name, &hash)
+	err := db.Model(&User{}).Where("email = ?", email).Select("license, name, password").Scan(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +225,7 @@ func Login(email, password string) (*user.User, error) {
 	return &user, nil
 }
 
-func NewVault(name, userEmail, password, salt, keyhash string) (*vault.Vault, error) {
+func NewVault(name, userEmail, password, salt, keyhash string) (*Vault, error) {
 	if keyhash == "" && password == "" {
 		return nil, errors.New("password and keyhash cannot both be empty")
 	}
@@ -227,42 +236,44 @@ func NewVault(name, userEmail, password, salt, keyhash string) (*vault.Vault, er
 			return nil, err
 		}
 	}
-	id := uuid.New().String()
-	created := time.Now().UnixMilli()
-	host := config.Host
-	_, err := db.DBConnection.Exec(`INSERT INTO vaults (
-			id,
-			user_email,
-			created,
-			host,
-			name, 
-			password, 
-			salt, 
-			keyhash
-		) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id, userEmail, created, host, name, password, salt, keyhash)
-	return &vault.Vault{
-		ID:       id,
-		Created:  created,
-		Host:     host,
-		Name:     name,
-		Password: password,
-		Salt:     salt,
-		Size:     0,
-	}, err
+	// _, err := db.DBConnection.Exec(`INSERT INTO vaults (
+	// 		id,
+	// 		user_email,
+	// 		created,
+	// 		host,
+	// 		name,
+	// 		password,
+	// 		salt,
+	// 		keyhash
+	// 	)
+	// 	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id, userEmail, created, host, name, password, salt, keyhash)
+	newVault := &Vault{
+		ID:        uuid.New().String(),
+		UserEmail: userEmail,
+		Created:   time.Now().UnixMilli(),
+		Host:      config.Host,
+		Name:      name,
+		Password:  password,
+		Salt:      salt,
+		KeyHash:   keyhash,
+	}
+	err := db.Create(newVault).Error
+	return newVault, err
 }
 
 func DeleteVault(id, email string) error {
-	_, err := db.DBConnection.Exec("DELETE FROM vaults WHERE id = ? AND user_email = ?", id, email)
+	// _, err := db.DBConnection.Exec("DELETE FROM vaults WHERE id = ? AND user_email = ?", id, email)
+	err := db.Where("id = ? AND user_email = ?", id, email).Delete(&Vault{}).Error
 	return err
 }
 
-func GetVault(id, keyHash string) (*vault.Vault, error) {
-	vault := &vault.Vault{}
+func GetVault(id, keyHash string) (*Vault, error) {
+	vault := &Vault{}
 	var dbKeyHash string
-	err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(
-		&vault.ID, &vault.UserEmail, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt,
-		&vault.Version, &dbKeyHash)
+	// err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(
+	// 	&vault.ID, &vault.UserEmail, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt,
+	// 	&vault.Version, &dbKeyHash)
+	err := db.First(vault, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -275,28 +286,31 @@ func GetVault(id, keyHash string) (*vault.Vault, error) {
 }
 
 func SetVaultVersion(id string, ver int) error {
-	_, err := db.DBConnection.Exec("UPDATE vaults SET version = ? WHERE id = ?", ver, id)
+	// _, err := db.DBConnection.Exec("UPDATE vaults SET version = ? WHERE id = ?", ver, id)
+	err := db.Model(&Vault{}).Where("id = ?", id).Update("version", ver).Error
 	return err
 }
 
 // Size is not included in the response. It should be fetched separately.
-func GetVaults(userEmail string) ([]*vault.Vault, error) {
-	rows, err := db.DBConnection.Query("SELECT id, created, host, name, password, salt FROM vaults WHERE user_email = ?", userEmail)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	vaults := []*vault.Vault{}
-	for rows.Next() {
-		vault := &vault.Vault{}
-		err = rows.Scan(&vault.ID, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt)
-		if err != nil {
-			return nil, err
-		}
-		vaults = append(vaults, vault)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return vaults, nil
+func GetVaults(userEmail string) ([]*Vault, error) {
+	vaults := []*Vault{}
+	// rows, err := db.DBConnection.Query("SELECT id, created, host, name, password, salt FROM vaults WHERE user_email = ?", userEmail)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+
+	// for rows.Next() {
+	// 	vault := &Vault{}
+	// 	err = rows.Scan(&vault.ID, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	vaults = append(vaults, vault)
+	// }
+	// if err != nil {
+	// 	return nil, err
+	// }
+	err := db.Select("id, created, host, name, password, salt").Where("user_email = ?", userEmail).Find(&vaults).Error
+	return vaults, err
 }
