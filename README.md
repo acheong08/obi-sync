@@ -29,6 +29,8 @@ These features are not in the latest release but in the main branch. They might 
 
 ## Setup
 
+[Quickstart with Docker](https://github.com/acheong08/rev-obsidian-sync/wiki/Docker-Compose)
+
 ### Environment variables
 #### Required:
 - `DOMAIN_NAME` - The domain name or IP address of your server. Include port if not on 80 or 433. The default is `localhost:3000`
