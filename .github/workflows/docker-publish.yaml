@@ -1,9 +1,10 @@
 name: Docker publish
 
 on:
-  push:
-    branches: [ "main" ]
-    tags: [ 'v*.*.*' ]
+  release:
+    types:
+      - created
+  workflow_dispatch:
 
 env:
   # Use docker.io for Docker Hub if empty
