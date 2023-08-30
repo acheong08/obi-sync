@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"time"
 
 	"github.com/acheong08/obsidian-sync/config"
@@ -81,5 +82,31 @@ func UserInfo(c *gin.Context) {
 			"expiry_ts": time.Now().UnixMilli() + time.Hour.Milliseconds()*24*365,
 			"type":      "education",
 		},
+	})
+}
+
+func SignUp(c *gin.Context) {
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		FullName string `json:"fullName"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	dbConnection := c.MustGet("db").(*database.Database)
+	err := dbConnection.NewUser(req.Email, strings.TrimSpace(req.Password), req.FullName)
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": "not sign up!"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"email": req.Email,
+		"name":  req.FullName,
 	})
 }
