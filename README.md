@@ -44,6 +44,7 @@ These features are not in the latest release but in the main branch. They might 
 - `git clone https://github.com/acheong08/obsidian-sync`
 - `cd obsidian-sync`
 - `go run cmd/obsidian-sync/main.go`
+
 Optional:
 - Configure [nginx](https://github.com/acheong08/rev-obsidian-sync/wiki/Nginx-Configuration)
 - HTTPS is recommended.
