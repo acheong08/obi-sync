@@ -17,6 +17,8 @@ var DataDir = "."
 
 var Secret []byte
 
+var SignUpKey string
+
 // Generate a random password, hash it, and store it in the Secret variable & a file
 // Load secret.gob if it exists
 func init() {
@@ -25,6 +27,9 @@ func init() {
 	}
 	if os.Getenv("ADDR_HTTP") != "" {
 		AddressHttp = os.Getenv("ADDR_HTTP")
+	}
+	if os.Getenv("SIGNUP_KEY") != "" {
+		SignUpKey = os.Getenv("SIGNUP_KEY")
 	}
 	if os.Getenv("DATA_DIR") != "" {
 		DataDir = os.Getenv("DATA_DIR")

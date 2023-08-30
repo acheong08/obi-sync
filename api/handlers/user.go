@@ -86,18 +86,22 @@ func UserInfo(c *gin.Context) {
 
 func SignUp(c *gin.Context) {
 	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		FullName string `json:"fullName"`
+		Email     string `json:"email" binding:"required"`
+		Password  string `json:"password" binding:"required"`
+		FullName  string `json:"name" binding:"required"`
+		SignUpKey string `json:"signup_key"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+	if req.SignUpKey != config.SignUpKey && config.SignUpKey != "" {
+		c.JSON(400, gin.H{"error": "invalid signup key"})
+		return
+	}
 
-	dbConnection := c.MustGet("db").(*database.Database)
-	err := dbConnection.NewUser(req.Email, strings.TrimSpace(req.Password), req.FullName)
+	err := vault.NewUser(req.Email, strings.TrimSpace(req.Password), req.FullName)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": "not sign up!"})
