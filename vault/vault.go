@@ -3,8 +3,10 @@ package vault
 import (
 	"database/sql"
 	"log"
+	"path"
 	"time"
 
+	"github.com/acheong08/obsidian-sync/config"
 	_ "modernc.org/sqlite"
 )
 
@@ -12,7 +14,8 @@ var db *sql.DB
 
 func init() {
 	var err error
-	db, err = sql.Open("sqlite", "vault.db")
+	var dbPath = path.Join(config.DataDir, "vault.db")
+	db, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,11 +19,15 @@ WORKDIR /
 
 COPY --from=build-stage /obsidian-sync /obsidian-sync
 
-ENV HOST=0.0.0.0
+ENV HOST=localhost:3000
+ENV ADDR_HTTP=0.0.0.0:3000
+ENV DATA_DIR=/data
 
 EXPOSE 3000
 
 #USER nonroot:nonroot
+
+VOLUME ["/data"]
 
 ENTRYPOINT ["/obsidian-sync"]
 

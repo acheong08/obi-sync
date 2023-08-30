@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/acheong08/endless"
 	"github.com/acheong08/obsidian-sync/api/handlers"
+	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/database"
 	gin "github.com/gin-gonic/gin"
 )
@@ -70,6 +71,6 @@ func main() {
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
 
-	endless.ListenAndServe("127.0.0.1:3000", router)
+	endless.ListenAndServe(config.AddressHttp, router)
 
 }

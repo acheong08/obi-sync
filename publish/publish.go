@@ -3,6 +3,7 @@ package publish
 import (
 	"database/sql"
 	"log"
+	"path"
 	"time"
 
 	"github.com/acheong08/obsidian-sync/config"
@@ -14,7 +15,8 @@ var db *sql.DB
 
 func init() {
 	var err error
-	db, err = sql.Open("sqlite", "publish.db")
+	var dbPath = path.Join(config.DataDir, "publish.db")
+	db, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
