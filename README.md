@@ -29,30 +29,19 @@ These features are not in the latest release but in the main branch. They might 
 
 ## Setup
 
-<details>
+### Environment variables
+#### Required:
+- `DOMAIN_NAME` - The domain name or IP address of your server. Include port if not on 80 or 433. The default is `localhost:3000`
+#### Optional
+- `ADDR_HTTP` - Server listener address. The default is `127.0.0.1:3000`
+- `SIGNUP_KEY` - Signup API is at `/user/signup`. This optionally restricts users who can sign up.
+- `DATA_DIR` - Where data is saved. Default `.`
 
-<summary>
-
-### Manual building
-</summary>
+### Building & Running
 
 - `git clone https://github.com/acheong08/obsidian-sync`
 - `cd obsidian-sync`
-- `export HOST=<YOUR DOMAIN NAME>` - Not necessary when running on localhost
 - `go run cmd/obsidian-sync/main.go`
-
-</details>
-
-<details>
-
-<summary>
-
-### Docker
-</summary>
-
-https://github.com/acheong08/rev-obsidian-sync/pkgs/container/rev-obsidian-sync
-
-</details>
 
 HTTPS is not required.
 
