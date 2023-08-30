@@ -88,20 +88,6 @@ func GetVaultSize(vaultID string) (int, error) {
 
 func GetVaultFiles(vaultID string) ([]*File, error) {
 	var files []*File
-	// rows, err := db.Query("SELECT uid, path, hash, extension, size, created, modified, folder, deleted FROM files WHERE vault_id = ? AND deleted = 0 AND newest = 1", vaultID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	//
-	// for rows.Next() {
-	// 	var file File
-	// 	err = rows.Scan(&file.UID, &file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	files = append(files, file)
-	// }
 	err := db.Model(&File{}).Select("uid, path, hash, extension, size, created, modified, folder, deleted").Where("vault_id = ? AND deleted = 0 AND newest = 1", vaultID).Find(&files).Error
 	return files, err
 }
@@ -137,33 +123,14 @@ func GetFileHistory(path string) ([]*File, error) {
 
 func GetDeletedFiles() (any, error) {
 	type f struct {
-		UID       int    `json:"uid"`
-		Timestamp int64  `json:"ts"`
-		Size      int64  `json:"size"`
-		Path      string `json:"path"`
-		Folder    bool   `json:"folder"`
-		Deleted   bool   `json:"deleted"`
+		UID      int    `json:"uid"`
+		Modified int64  `json:"ts"`
+		Size     int64  `json:"size"`
+		Path     string `json:"path"`
+		Folder   bool   `json:"folder"`
+		Deleted  bool   `json:"deleted"`
 	}
 	var files []*f = make([]*f, 0)
-	// Get all files that are deleted (deleted,folder,path,size,modified,uid)
-	// rows, err := db.Query("SELECT uid, modified, size, path, folder, deleted FROM files WHERE deleted = ?", true)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	var file f
-	// 	err = rows.Scan(&file.UID, &file.Timestamp, &file.Size, &file.Path, &file.Folder, &file.Deleted)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	files = append(files, file)
-
-	// }
-	// if files == nil {
-	// 	return make([]File, 0), nil
-	// }
 	err := db.Model(&File{}).Select("uid, modified, size, path, folder, deleted").Where("deleted = ?", true).Find(&files).Error
 	return &files, err
 }
@@ -193,16 +160,6 @@ func InsertMetadata(file *File) (int, error) {
 	}
 
 	return file.UID, err
-}
-
-func GetFileData(uid int) (*[]byte, error) {
-	var file []byte
-	// err := db.QueryRow("SELECT data FROM files WHERE uid = ?", uid).Scan(&file)
-	err := db.Select("data").Where("uid = ?", uid).First(&file).Error
-	if err != nil {
-		return nil, err
-	}
-	return &file, nil
 }
 
 func InsertData(uid int, data *[]byte) error {
