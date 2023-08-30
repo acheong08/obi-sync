@@ -2,6 +2,7 @@ package publish
 
 import (
 	"log"
+	"path"
 	"time"
 
 	"github.com/acheong08/obsidian-sync/config"
@@ -15,7 +16,7 @@ var db *gorm.DB
 
 func init() {
 	var err error
-	db, err = gorm.Open(sqlite.Open("publish.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(path.Join(config.DataDir, "publish.db")), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}

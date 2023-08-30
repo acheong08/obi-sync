@@ -2,10 +2,12 @@ package vaultfiles
 
 import (
 	"log"
+	"path"
 	"time"
 
 	"gorm.io/gorm"
 
+	"github.com/acheong08/obsidian-sync/config"
 	"github.com/glebarez/sqlite"
 )
 
@@ -13,7 +15,7 @@ var db *gorm.DB
 
 func init() {
 	var err error
-	db, err = gorm.Open(sqlite.Open("vault.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(path.Join(config.DataDir, "vaultfiles.db")), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}

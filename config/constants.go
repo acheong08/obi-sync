@@ -7,8 +7,6 @@ import (
 	"path"
 )
 
-var DBPath = "database.db"
-
 var SecretPath = "secret.gob"
 
 var Host = "localhost:3000"
@@ -39,7 +37,6 @@ func init() {
 			}
 		}
 
-		DBPath = path.Join(DataDir, "database.db")
 		SecretPath = path.Join(DataDir, "secret.gob")
 	}
 	if _, err := os.Stat(SecretPath); err != nil {

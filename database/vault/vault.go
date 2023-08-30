@@ -3,6 +3,7 @@ package vault
 import (
 	"errors"
 	"log"
+	"path"
 	"time"
 
 	"gorm.io/gorm"
@@ -18,7 +19,7 @@ var db *gorm.DB
 
 func init() {
 	var err error
-	db, err = gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(path.Join(config.DataDir, "vault.db")), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
