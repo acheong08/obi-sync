@@ -9,11 +9,11 @@ type File struct {
 	Size       int64  `json:"size"`
 	Created    int64  `json:"created"`
 	Modified   int64  `json:"modified"`
-	Folder     int    `json:"folder"`
-	Deleted    int    `json:"deleted"`
+	Folder     bool   `json:"folder"`
+	Deleted    bool   `json:"deleted"`
 	Data       []byte `json:"-"`
-	Newest     int    `json:"newest"`
-	IsSnapshot int    `json:"is_snapshot"`
+	Newest     bool   `json:"newest"`
+	IsSnapshot bool   `json:"is_snapshot"`
 }
 
 type FileResponse struct {

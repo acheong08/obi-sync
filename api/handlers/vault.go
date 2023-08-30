@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/acheong08/obsidian-sync/database/vault"
-	"github.com/acheong08/obsidian-sync/database/vaultfiles"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
 	password_generator "github.com/sethvargo/go-password/password"
@@ -13,8 +12,8 @@ func ListVaults(c *gin.Context) {
 		Token string `json:"token" binding:"required"`
 	}
 	type response struct {
-		Shared []*vaultfiles.Vault `json:"shared"`
-		Vaults []*vaultfiles.Vault `json:"vaults"`
+		Shared []*vault.Vault `json:"shared"`
+		Vaults []*vault.Vault `json:"vaults"`
 	}
 	var req request
 	if err := c.ShouldBindJSON(&req); err != nil {

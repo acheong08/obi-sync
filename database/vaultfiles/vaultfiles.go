@@ -68,7 +68,7 @@ func Snapshot(vaultID string) error {
 	return err
 }
 
-func RestoreFile(uid int) (*File, error) {
+func RestoreFile(uid int) (*FileResponse, error) {
 	// Get file path
 	var file File
 	// err := db.QueryRow("SELECT path, hash, extension, size, created, modified, folder, deleted FROM files WHERE uid = ?", uid).Scan(&file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
@@ -82,14 +82,17 @@ func RestoreFile(uid int) (*File, error) {
 	// _, err = db.Exec(`UPDATE files SET deleted = 0, newest = 1 WHERE uid = $1;
 	// 	UPDATE files SET newest = 0 WHERE path = $2 AND deleted = 0`, uid, file.Path)
 	err = db.Model(&File{}).Where("uid = ?", uid).Updates(File{
-		Deleted: 0,
-		Newest:  1,
+		Deleted: false,
+		Newest:  true,
 	}).Error
 	if err != nil {
 		return nil, err
 	}
 	err = db.Model(&File{}).Where("path = ? AND deleted = 0", file.Path).Update("newest", 0).Error
-	return &file, err
+	return &FileResponse{
+		file,
+		"push",
+	}, err
 }
 
 func GetVaultSize(vaultID string) (int64, error) {

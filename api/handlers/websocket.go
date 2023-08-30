@@ -93,7 +93,7 @@ func WsHandler(c *gin.Context) {
 			ws.WriteJSON(gin.H{"error": err.Error()})
 			return
 		}
-		for _, file := range *vaultFiles {
+		for _, file := range vaultFiles {
 			ws.WriteJSON(gin.H{
 				"op": "push", "path": file.Path,
 				"hash": file.Hash, "size": file.Size,
@@ -207,7 +207,7 @@ func WsHandler(c *gin.Context) {
 					return
 				}
 			}
-			vaultUID, err := vaultfiles.InsertMetadata(connectedVault.ID, vaultfiles.File{
+			vaultUID, err := vaultfiles.InsertMetadata(connectedVault.ID, &vaultfiles.File{
 				Path:      metadata.Path,
 				Hash:      metadata.Hash,
 				Extension: metadata.Extension,
@@ -295,7 +295,6 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			file.Op = "push"
 			channels[connectedVault.ID].Broadcast(file)
 			ws.WriteJSON(gin.H{"res": "ok"})
 		default:
@@ -317,7 +316,7 @@ type initializationRequest struct {
 	Device  string `json:"device" binding:"required"`
 }
 
-func initHandler(req []byte) (*initializationRequest, *vaultfiles.Vault, error) {
+func initHandler(req []byte) (*initializationRequest, *vault.Vault, error) {
 
 	var initial initializationRequest
 	err := json.Unmarshal(req, &initial)
