@@ -7,7 +7,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"golang.org/x/term"
 )
 
@@ -28,15 +28,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db := database.NewDatabase()
-	defer db.DBConnection.Close()
 
 	// Strip newline characters
 	name = strings.Trim(name, "\n")
 	email = strings.Trim(email, "\n")
 	password = []byte(strings.Trim(string(password), "\n"))
 
-	err = db.NewUser(email, string(password), name)
+	err = vault.NewUser(email, string(password), name)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package vault
+package vaultfiles
 
 type Vault struct {
 	ID        string `json:"id"`
