@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"database/sql"
 	"net/url"
 
-	"github.com/acheong08/obsidian-sync/publish"
+	"github.com/acheong08/obsidian-sync/database/publish"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func ListPublish(c *gin.Context) {
@@ -47,6 +47,7 @@ func ListPublish(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	files, err := publish.GetFiles(req.ID)
 	if err != nil {
@@ -178,7 +179,7 @@ func SitePublish(c *gin.Context) {
 	}
 	site, err := publish.GetSlug(req.Slug)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			c.JSON(200, gin.H{
 				"code":    "NOTFOUND",
 				"message": "Slug not found",
@@ -247,7 +248,7 @@ func UploadFile(c *gin.Context) {
 	var file publish.File = publish.File{
 		Size: c.Request.ContentLength,
 		Hash: c.Request.Header.Get("obs-hash"),
-		Site: c.Request.Header.Get("obs-id"),
+		Slug: c.Request.Header.Get("obs-id"),
 		Path: c.Request.Header.Get("obs-path"),
 	}
 	// Path is URL encoded. Unencode it
@@ -258,7 +259,7 @@ func UploadFile(c *gin.Context) {
 		})
 		return
 	}
-	siteOwner, err := publish.GetSiteOwner(file.Site)
+	siteOwner, err := publish.GetSiteOwner(file.Slug)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
@@ -278,7 +279,7 @@ func UploadFile(c *gin.Context) {
 		})
 		return
 	}
-	file.Data = data
+	file.Data = string(data)
 	err = publish.NewFile(&file)
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -298,7 +299,7 @@ func GetPublishedFile(c *gin.Context) {
 	// Get site id from slug
 	site, err := publish.GetSlug(slug)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			c.JSON(404, gin.H{
 				"error": "Site not found",
 			})
@@ -320,5 +321,5 @@ func GetPublishedFile(c *gin.Context) {
 		return
 	}
 	// Return file []byte
-	c.Data(200, "text/markdown; charset=utf-8", file)
+	c.Data(200, "text/markdown; charset=utf-8", []byte(file))
 }

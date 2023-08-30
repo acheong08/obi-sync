@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
 )
@@ -27,22 +27,21 @@ func InviteVaultShare(c *gin.Context) {
 	}
 
 	// Make invite
-	db := c.MustGet("db").(*database.Database)
 
-	if !db.HasAccessToVault(email, req.VaultID) {
+	if !vault.HasAccessToVault(email, req.VaultID) {
 		c.JSON(401, gin.H{
 			"error": "You do not have access to this vault",
 		})
 	}
 
-	user, err := db.UserInfo(req.Email)
+	user, err := vault.UserInfo(req.Email)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"error": "User does not exist",
 		})
 	}
 
-	err = db.ShareVaultInvite(req.Email, user.Name, req.VaultID)
+	err = vault.ShareVaultInvite(req.Email, user.Name, req.VaultID)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"error": "Failed to share vault",
@@ -70,14 +69,14 @@ func ListVaultShares(c *gin.Context) {
 		})
 		return
 	}
-	db := c.MustGet("db").(*database.Database)
-	if !db.HasAccessToVault(email, req.VaultID) {
+
+	if !vault.HasAccessToVault(email, req.VaultID) {
 		c.JSON(401, gin.H{
 			"error": "You do not have access to this vault",
 		})
 		return
 	}
-	shares, err := db.GetVaultShares(req.VaultID)
+	shares, err := vault.GetVaultShares(req.VaultID)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"error": err.Error(),
@@ -108,22 +107,22 @@ func RemoveVaultShare(c *gin.Context) {
 		})
 		return
 	}
-	db := c.MustGet("db").(*database.Database)
+
 	if req.ShareUID != "" {
-		if !db.IsVaultOwner(req.VaultUID, email) {
+		if !vault.IsVaultOwner(req.VaultUID, email) {
 			c.JSON(401, gin.H{
 				"error": "You are not the owner of this vault",
 			})
 			return
 		}
 	} else {
-		if !db.HasAccessToVault(email, req.VaultUID) {
+		if !vault.HasAccessToVault(email, req.VaultUID) {
 			c.JSON(401, gin.H{
 				"error": "You do not have access to this vault",
 			})
 		}
 	}
-	err = db.ShareVaultRevoke(req.ShareUID, req.VaultUID, email)
+	err = vault.ShareVaultRevoke(req.ShareUID, req.VaultUID, email)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"error": "Failed to remove vault share",

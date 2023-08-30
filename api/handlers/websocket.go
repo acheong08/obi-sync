@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
+	"github.com/acheong08/obsidian-sync/database/vaultfiles"
 	"github.com/acheong08/obsidian-sync/utilities"
-	"github.com/acheong08/obsidian-sync/vault"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -75,7 +75,7 @@ func WsHandler(c *gin.Context) {
 		return
 	}
 	// Parse initialization message as JSON
-	connectionInfo, connectedVault, err := initHandler(msg, c.MustGet("db").(*database.Database))
+	connectionInfo, connectedVault, err := initHandler(msg)
 	if err != nil {
 		ws.WriteJSON(gin.H{"error": err.Error()})
 		return
@@ -88,12 +88,12 @@ func WsHandler(c *gin.Context) {
 		return
 	}
 	if connectedVault.Version > version {
-		vaultFiles, err := vault.GetVaultFiles(connectedVault.ID)
+		vaultFiles, err := vaultfiles.GetVaultFiles(connectedVault.ID)
 		if err != nil {
 			ws.WriteJSON(gin.H{"error": err.Error()})
 			return
 		}
-		for _, file := range *vaultFiles {
+		for _, file := range vaultFiles {
 			ws.WriteJSON(gin.H{
 				"op": "push", "path": file.Path,
 				"hash": file.Hash, "size": file.Size,
@@ -106,11 +106,10 @@ func WsHandler(c *gin.Context) {
 	var version_bumped bool = false
 	ws.WriteJSON(gin.H{"op": "ready", "version": connectedVault.Version})
 
-	defer vault.Snapshot(connectedVault.ID)
+	defer vaultfiles.Snapshot(connectedVault.ID)
 
-	dbConnection := c.MustGet("db").(*database.Database)
 	if connectedVault.Version < version {
-		dbConnection.SetVaultVersion(connectedVault.ID, version)
+		vault.SetVaultVersion(connectedVault.ID, version)
 	}
 
 	// Check if vaultID is in channels
@@ -147,7 +146,7 @@ func WsHandler(c *gin.Context) {
 		}
 		switch m.Op {
 		case "size":
-			size, err := vault.GetVaultSize(connectedVault.ID)
+			size, err := vaultfiles.GetVaultSize(connectedVault.ID)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -167,7 +166,7 @@ func WsHandler(c *gin.Context) {
 				return
 			}
 			var uid int = utilities.ToInt(pull.UID)
-			file, err := vault.GetFile(uid)
+			file, err := vaultfiles.GetFile(uid)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -201,52 +200,55 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			var vaultUID int
+			var err error
 			if metadata.Deleted {
-				err := vault.DeleteVaultFile(metadata.Path)
-				if err != nil {
-					ws.WriteJSON(gin.H{"error": err.Error()})
-					return
-				}
+				err = vaultfiles.DeleteVaultFile(metadata.Path)
+				vaultUID = metadata.UID
+			} else {
+				vaultUID, err = vaultfiles.InsertMetadata(&vaultfiles.File{
+					VaultID:   connectedVault.ID,
+					Path:      metadata.Path,
+					Hash:      metadata.Hash,
+					Extension: metadata.Extension,
+					Size:      int64(metadata.Size),
+					Created:   metadata.CreationTime,
+					Modified:  metadata.ModifiedTime,
+					Folder:    metadata.Folder,
+					Deleted:   metadata.Deleted,
+				})
 			}
-			vaultUID, err := vault.InsertMetadata(connectedVault.ID, vault.File{
-				Path:      metadata.Path,
-				Hash:      metadata.Hash,
-				Extension: metadata.Extension,
-				Size:      int64(metadata.Size),
-				Created:   metadata.CreationTime,
-				Modified:  metadata.ModifiedTime,
-				Folder:    metadata.Folder,
-				Deleted:   metadata.Deleted,
-			})
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			var fullBinary []byte
-			for i := 0; i < metadata.Pieces; i++ {
-				ws.WriteJSON(gin.H{"res": "next"})
-				// Read bytes
-				msgType, msg, err := ws.ReadMessage()
+			if metadata.Size > 0 {
+				var fullBinary []byte
+				for i := 0; i < metadata.Pieces; i++ {
+					ws.WriteJSON(gin.H{"res": "next"})
+					// Read bytes
+					msgType, msg, err := ws.ReadMessage()
+					if err != nil {
+						ws.WriteJSON(gin.H{"error": err.Error()})
+						return
+					}
+					if msgType != websocket.BinaryMessage {
+						ws.WriteJSON(gin.H{"error": "message type must be binary"})
+						return
+					}
+					fullBinary = append(fullBinary, msg...)
+				}
+				err = vaultfiles.InsertData(vaultUID, &fullBinary)
 				if err != nil {
 					ws.WriteJSON(gin.H{"error": err.Error()})
 					return
 				}
-				if msgType != websocket.BinaryMessage {
-					ws.WriteJSON(gin.H{"error": "message type must be binary"})
-					return
-				}
-				fullBinary = append(fullBinary, msg...)
-			}
-			err = vault.InsertData(vaultUID, &fullBinary)
-			if err != nil {
-				ws.WriteJSON(gin.H{"error": err.Error()})
-				return
 			}
 			metadata.UID = int(vaultUID)
 			// Broadcast to all clients
 			channels[connectedVault.ID].Broadcast(metadata)
 			if !version_bumped {
-				dbConnection.SetVaultVersion(connectedVault.ID, version+1)
+				vault.SetVaultVersion(connectedVault.ID, version+1)
 				version_bumped = true
 			}
 			ws.WriteJSON(gin.H{"op": "ok"})
@@ -260,7 +262,7 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			files, err := vault.GetFileHistory(history.Path)
+			files, err := vaultfiles.GetFileHistory(history.Path)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -270,7 +272,7 @@ func WsHandler(c *gin.Context) {
 		case "ping":
 			ws.WriteJSON(gin.H{"op": "pong"})
 		case "deleted":
-			files, err := vault.GetDeletedFiles()
+			files, err := vaultfiles.GetDeletedFiles()
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
@@ -291,12 +293,11 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			file, err := vault.RestoreFile(uid)
+			file, err := vaultfiles.RestoreFile(uid)
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			file.Op = "push"
 			channels[connectedVault.ID].Broadcast(file)
 			ws.WriteJSON(gin.H{"res": "ok"})
 		default:
@@ -318,7 +319,7 @@ type initializationRequest struct {
 	Device  string `json:"device" binding:"required"`
 }
 
-func initHandler(req []byte, dbConnection *database.Database) (*initializationRequest, *vault.Vault, error) {
+func initHandler(req []byte) (*initializationRequest, *vault.Vault, error) {
 
 	var initial initializationRequest
 	err := json.Unmarshal(req, &initial)
@@ -332,12 +333,12 @@ func initHandler(req []byte, dbConnection *database.Database) (*initializationRe
 		return nil, nil, err
 	}
 
-	vault, err := dbConnection.GetVault(initial.Id, initial.KeyHash)
+	vaultResult, err := vault.GetVault(initial.Id, initial.KeyHash)
 	if err != nil {
 		return nil, nil, err
 	}
-	if !dbConnection.HasAccessToVault(vault.ID, email) {
+	if !vault.HasAccessToVault(vaultResult.ID, email) {
 		return nil, nil, fmt.Errorf("no access to vault")
 	}
-	return &initial, vault, nil
+	return &initial, vaultResult, nil
 }

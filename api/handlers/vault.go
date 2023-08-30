@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/acheong08/obsidian-sync/utilities"
-	"github.com/acheong08/obsidian-sync/vault"
 	"github.com/gin-gonic/gin"
 	password_generator "github.com/sethvargo/go-password/password"
 )
@@ -29,16 +28,16 @@ func ListVaults(c *gin.Context) {
 		return
 	}
 
-	dbConnection := c.MustGet("db").(*database.Database)
-	vaults, err := dbConnection.GetVaults(email)
+	vaults, err := vault.GetVaults(email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 	// Get shared vaults
-	shared, err := dbConnection.GetSharedVaults(email)
+	shared, err := vault.GetSharedVaults(email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(200, response{
 		Shared: shared,
@@ -60,7 +59,7 @@ func CreateVault(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	dbConnection := c.MustGet("db").(*database.Database)
+
 	email, err := utilities.GetJwtEmail(req.Token)
 	if err != nil {
 		// Unauthorized
@@ -92,7 +91,7 @@ func CreateVault(c *gin.Context) {
 			c.JSON(400, gin.H{"error": "keyhash must be provided if salt is provided"})
 		}
 	}
-	vault, err := dbConnection.NewVault(req.Name, email, password, salt, keyHash)
+	vault, err := vault.NewVault(req.Name, email, password, salt, keyHash)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -111,14 +110,14 @@ func DeleteVault(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	dbConnection := c.MustGet("db").(*database.Database)
+
 	email, err := utilities.GetJwtEmail(req.Token)
 	if err != nil {
 		// Unauthorized
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
-	err = dbConnection.DeleteVault(req.VaultUID, email)
+	err = vault.DeleteVault(req.VaultUID, email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -138,24 +137,24 @@ func AccessVault(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	dbConnection := c.MustGet("db").(*database.Database)
+
 	email, err := utilities.GetJwtEmail(req.Token)
 	if err != nil {
 		// Unauthorized
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
-	if !dbConnection.HasAccessToVault(req.VaultUID, email) {
+	if !vault.HasAccessToVault(req.VaultUID, email) {
 		c.JSON(401, gin.H{"error": "You do not have access to this vault"})
 		return
 	}
-	_, err = dbConnection.GetVault(req.VaultUID, req.KeyHash)
+	_, err = vault.GetVault(req.VaultUID, req.KeyHash)
 	if err != nil {
 		c.JSON(200, gin.H{"error": err.Error()})
 		return
 	}
 	// Get user details
-	user, err := dbConnection.UserInfo(email)
+	user, err := vault.UserInfo(email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/acheong08/obsidian-sync/config"
-	"github.com/acheong08/obsidian-sync/database"
+	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
@@ -27,11 +27,10 @@ func Signin(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	dbConnection := c.MustGet("db").(*database.Database)
-	userInfo, err := dbConnection.Login(req.Email, req.Password)
+	userInfo, err := vault.Login(req.Email, req.Password)
 	if err != nil {
 		// 200 because the app doesn't check the status code.
-		c.JSON(200, gin.H{"error": "Login failed, please double check your email and password."})
+		c.JSON(200, gin.H{"error": err.Error()})
 		return
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -39,6 +38,7 @@ func Signin(c *gin.Context) {
 	}).SignedString(config.Secret)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(200, response{
 		Email:   userInfo.Email,
@@ -62,8 +62,7 @@ func UserInfo(c *gin.Context) {
 		c.JSON(200, gin.H{"error": "not logged in"})
 		return
 	}
-	dbConnection := c.MustGet("db").(*database.Database)
-	userInfo, err := dbConnection.UserInfo(email)
+	userInfo, err := vault.UserInfo(email)
 	if err != nil {
 		c.JSON(200, gin.H{"error": "not logged in"})
 		return
