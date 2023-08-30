@@ -27,12 +27,6 @@ func init() {
 // deletes all files which are not snapshots
 // deletes all files where size is not 0 but data is null
 func Snapshot(vaultID string) error {
-	// _, err := db.Exec(`
-	// 	UPDATE files SET is_snapshot = 1 WHERE newest = 1 AND vault_id = $1;
-	// 	DELETE FROM files WHERE is_snapshot = 0 AND vault_id = $1;
-	// 	DELETE FROM files WHERE size != 0 AND data IS NULL AND vault_id = $1;
-	// `, vaultID)
-
 	// Set newest files to be snapshots
 	err := db.Model(&File{}).Where("newest = 1 AND vault_id = ?", vaultID).Update("is_snapshot", 1).Error
 	if err != nil {
@@ -51,16 +45,11 @@ func Snapshot(vaultID string) error {
 func RestoreFile(uid int) (*FileResponse, error) {
 	// Get file path
 	var file File
-	// err := db.QueryRow("SELECT path, hash, extension, size, created, modified, folder, deleted FROM files WHERE uid = ?", uid).Scan(&file.Path, &file.Hash, &file.Extension, &file.Size, &file.Created, &file.Modified, &file.Folder, &file.Deleted)
 	err := db.Select("path, hash, extension, size, created, modified, folder, deleted").Where("uid = ?", uid).First(&file).Error
 	if err != nil {
 		return nil, err
 	}
 	file.UID = uid
-	// Update file to be not deleted and newest and all other files with the
-	// same path to not be newest
-	// _, err = db.Exec(`UPDATE files SET deleted = 0, newest = 1 WHERE uid = $1;
-	// 	UPDATE files SET newest = 0 WHERE path = $2 AND deleted = 0`, uid, file.Path)
 	err = db.Model(&File{}).Where("uid = ?", uid).Updates(File{
 		Deleted: false,
 		Newest:  true,
@@ -94,29 +83,12 @@ func GetVaultFiles(vaultID string) ([]*File, error) {
 
 func GetFile(uid int) (*File, error) {
 	var file File
-	// Get hash and size
-	// err := db.QueryRow("SELECT hash, size, data FROM files WHERE uid = ?", uid).Scan(&file.Hash, &file.Size, &file.Data)
 	err := db.Model(&File{}).Select("hash, size, data").Where("uid = ?", uid).First(&file).Error
 	return &file, err
 }
 
 func GetFileHistory(path string) ([]*File, error) {
 	var files []*File
-	// Order by modified time (newest first in array)
-	// rows, err := db.Query("SELECT uid, path, size, modified, folder, deleted FROM files WHERE path = ? ORDER BY modified DESC", path)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	var file File
-	// 	err = rows.Scan(&file.UID, &file.Path, &file.Size, &file.Timestamp, &file.Folder, &file.Deleted)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	files = append(files, file)
-	// }
 	err := db.Model(&File{}).Select("uid, path, size, modified, folder, deleted").Where("path = ?", path).Order("modified DESC").Find(&files).Error
 	return files, err
 }
@@ -131,7 +103,9 @@ func GetDeletedFiles() (any, error) {
 		Deleted  bool   `json:"deleted"`
 	}
 	var files []*f = make([]*f, 0)
-	err := db.Model(&File{}).Select("uid, modified, size, path, folder, deleted").Where("deleted = ?", true).Find(&files).Error
+	// err := db.Model(&File{}).Select("uid, modified, size, path, folder, deleted").Where("deleted = ?", true).Find(&files).Error
+	// Find all files which are deleted and newest
+	err := db.Model(&File{}).Select("uid, modified, size, path, folder, deleted").Where("deleted = ? AND newest = ?", true, true).Find(&files).Error
 	return &files, err
 }
 
@@ -143,17 +117,10 @@ func InsertMetadata(file *File) (int, error) {
 	if file.Modified == 0 {
 		file.Modified = time.Now().UnixMilli()
 	}
-	// Set previous files with the same path to not be newest
-	// _, err := db.Exec("UPDATE files SET newest = 0 WHERE path = ? AND newest = 1", file.Path)
 	err := db.Model(&File{}).Where("path = ? AND newest = 1", file.Path).Update("newest", 0).Error
 	if err != nil {
 		return 0, err
 	}
-	// result, err := db.Exec(`INSERT INTO files (
-	// 	vault_id, path, hash, extension, size, created, modified, folder, deleted)
-	// 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-	// 	vaultID, file.Path, file.Hash, file.Extension, file.Size, file.Created,
-	// 	file.Modified, file.Folder, file.Deleted)
 	result := db.Create(file)
 	if result.Error != nil {
 		return 0, result.Error
@@ -163,14 +130,11 @@ func InsertMetadata(file *File) (int, error) {
 }
 
 func InsertData(uid int, data *[]byte) error {
-	// _, err := db.Exec("UPDATE files SET data = ? WHERE uid = ?", data, uid)
 	err := db.Model(&File{}).Where("uid = ?", uid).Update("data", data).Error
 	return err
 }
 
 func DeleteVaultFile(path string) error {
-	// Update all files with the same path to be deleted
-	// _, err := db.Exec("UPDATE files SET deleted = 1 WHERE path = ?", path)
 	err := db.Model(&File{}).Where("path = ?", path).Update("deleted", 1).Error
 	return err
 }

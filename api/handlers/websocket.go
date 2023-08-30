@@ -200,47 +200,49 @@ func WsHandler(c *gin.Context) {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			var vaultUID int
+			var err error
 			if metadata.Deleted {
-				err := vaultfiles.DeleteVaultFile(metadata.Path)
-				if err != nil {
-					ws.WriteJSON(gin.H{"error": err.Error()})
-					return
-				}
+				err = vaultfiles.DeleteVaultFile(metadata.Path)
+				vaultUID = metadata.UID
+			} else {
+				vaultUID, err = vaultfiles.InsertMetadata(&vaultfiles.File{
+					VaultID:   connectedVault.ID,
+					Path:      metadata.Path,
+					Hash:      metadata.Hash,
+					Extension: metadata.Extension,
+					Size:      int64(metadata.Size),
+					Created:   metadata.CreationTime,
+					Modified:  metadata.ModifiedTime,
+					Folder:    metadata.Folder,
+					Deleted:   metadata.Deleted,
+				})
 			}
-			vaultUID, err := vaultfiles.InsertMetadata(&vaultfiles.File{
-				VaultID:   connectedVault.ID,
-				Path:      metadata.Path,
-				Hash:      metadata.Hash,
-				Extension: metadata.Extension,
-				Size:      int64(metadata.Size),
-				Created:   metadata.CreationTime,
-				Modified:  metadata.ModifiedTime,
-				Folder:    metadata.Folder,
-				Deleted:   metadata.Deleted,
-			})
 			if err != nil {
 				ws.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
-			var fullBinary []byte
-			for i := 0; i < metadata.Pieces; i++ {
-				ws.WriteJSON(gin.H{"res": "next"})
-				// Read bytes
-				msgType, msg, err := ws.ReadMessage()
+			if metadata.Size > 0 {
+				var fullBinary []byte
+				for i := 0; i < metadata.Pieces; i++ {
+					ws.WriteJSON(gin.H{"res": "next"})
+					// Read bytes
+					msgType, msg, err := ws.ReadMessage()
+					if err != nil {
+						ws.WriteJSON(gin.H{"error": err.Error()})
+						return
+					}
+					if msgType != websocket.BinaryMessage {
+						ws.WriteJSON(gin.H{"error": "message type must be binary"})
+						return
+					}
+					fullBinary = append(fullBinary, msg...)
+				}
+				err = vaultfiles.InsertData(vaultUID, &fullBinary)
 				if err != nil {
 					ws.WriteJSON(gin.H{"error": err.Error()})
 					return
 				}
-				if msgType != websocket.BinaryMessage {
-					ws.WriteJSON(gin.H{"error": "message type must be binary"})
-					return
-				}
-				fullBinary = append(fullBinary, msg...)
-			}
-			err = vaultfiles.InsertData(vaultUID, &fullBinary)
-			if err != nil {
-				ws.WriteJSON(gin.H{"error": err.Error()})
-				return
 			}
 			metadata.UID = int(vaultUID)
 			// Broadcast to all clients

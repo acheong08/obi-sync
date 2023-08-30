@@ -53,44 +53,12 @@ func ShareVaultRevoke(shareID, vaultID, userEmail string) error {
 
 func GetVaultShares(vaultID string) ([]*Share, error) {
 	shares := []*Share{}
-	// rows, err := db.DBConnection.Query("SELECT id, email, name, accepted FROM shares WHERE vault_id = ?", vaultID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	//
-	// for rows.Next() {
-	// 	share := &Share{}
-	// 	err = rows.Scan(&share.UID, &share.Email, &share.Name, &share.Accepted)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	shares = append(shares, share)
-	// }
 	err := db.Select("id, email, name, accepted").Where("vault_id = ?", vaultID).Find(&shares).Error
 	return shares, err
 }
 
 func GetSharedVaults(userEmail string) ([]*Vault, error) {
 	vaults := []*Vault{}
-	// rows, err := db.DBConnection.Query("SELECT vault_id FROM shares WHERE email = ?", userEmail)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	//
-	// for rows.Next() {
-	// 	var vaultID string
-	// 	err = rows.Scan(&vaultID)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	vault, err := GetVault(vaultID, "")
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	vaults = append(vaults, vault)
-	// }
 	vaultIDs := []string{}
 	err := db.Model(&Share{}).Where("email = ?", userEmail).Select("vault_id").Scan(&vaultIDs).Error
 	if err != nil {
@@ -178,17 +146,6 @@ func NewVault(name, userEmail, password, salt, keyhash string) (*Vault, error) {
 			return nil, err
 		}
 	}
-	// _, err := db.DBConnection.Exec(`INSERT INTO vaults (
-	// 		id,
-	// 		user_email,
-	// 		created,
-	// 		host,
-	// 		name,
-	// 		password,
-	// 		salt,
-	// 		keyhash
-	// 	)
-	// 	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id, userEmail, created, host, name, password, salt, keyhash)
 	newVault := &Vault{
 		ID:        uuid.New().String(),
 		UserEmail: userEmail,
@@ -211,9 +168,6 @@ func DeleteVault(id, email string) error {
 
 func GetVault(id, keyHash string) (*Vault, error) {
 	vault := &Vault{}
-	// err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(
-	// 	&vault.ID, &vault.UserEmail, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt,
-	// 	&vault.Version, &dbKeyHash)
 	err := db.First(vault, "id = ?", id).Error
 	if err != nil {
 		return nil, err
@@ -235,23 +189,6 @@ func SetVaultVersion(id string, ver int) error {
 // Size is not included in the response. It should be fetched separately.
 func GetVaults(userEmail string) ([]*Vault, error) {
 	vaults := []*Vault{}
-	// rows, err := db.DBConnection.Query("SELECT id, created, host, name, password, salt FROM vaults WHERE user_email = ?", userEmail)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	vault := &Vault{}
-	// 	err = rows.Scan(&vault.ID, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	vaults = append(vaults, vault)
-	// }
-	// if err != nil {
-	// 	return nil, err
-	// }
 	err := db.Select("id, created, host, name, password, salt").Where("user_email = ?", userEmail).Find(&vaults).Error
 	return vaults, err
 }
