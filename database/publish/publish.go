@@ -25,8 +25,8 @@ func init() {
 	}
 }
 
-func GetFile(siteID, path string) ([]byte, error) {
-	var data []byte
+func GetFile(siteID, path string) (string, error) {
+	var data string
 	// err := db.QueryRow("SELECT data FROM files WHERE slug = ? AND path = ?", siteID, path).Scan(&data)
 	err := db.Model(&File{}).Select("data").Where("slug = ? AND path = ?", siteID, path).First(&data).Error
 	return data, err

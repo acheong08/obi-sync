@@ -15,7 +15,7 @@ type File struct {
 	Hash    string `json:"hash,omitempty"`
 	MTime   int64  `json:"mtime,omitempty"`
 	Size    int64  `json:"size,omitempty"`
-	Data    []byte `json:"data,omitempty"`
+	Data    string `json:"data,omitempty"`
 	Slug    string `json:"site,omitempty" gorm:"uniqueIndex:idx_path_site"`
 	Deleted bool   `json:"deleted"`
 }

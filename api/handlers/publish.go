@@ -279,7 +279,7 @@ func UploadFile(c *gin.Context) {
 		})
 		return
 	}
-	file.Data = data
+	file.Data = string(data)
 	err = publish.NewFile(&file)
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -321,5 +321,5 @@ func GetPublishedFile(c *gin.Context) {
 		return
 	}
 	// Return file []byte
-	c.Data(200, "text/markdown; charset=utf-8", file)
+	c.Data(200, "text/markdown; charset=utf-8", []byte(file))
 }
