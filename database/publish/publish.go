@@ -28,7 +28,7 @@ func init() {
 func GetFile(siteID, path string) ([]byte, error) {
 	var data []byte
 	// err := db.QueryRow("SELECT data FROM files WHERE site = ? AND path = ?", siteID, path).Scan(&data)
-	err := db.Select("data").Where("site = ? AND path = ?", siteID, path).First(&data).Error
+	err := db.Model(&File{}).Select("data").Where("site = ? AND path = ?", siteID, path).First(&data).Error
 	return data, err
 }
 func NewFile(file *File) error {
@@ -37,7 +37,7 @@ func NewFile(file *File) error {
 	// _, err := db.Exec("INSERT OR REPLACE INTO files (path, ctime, hash, mtime, size, data, site) VALUES (?, ?, ?, ?, ?, ?, ?)", file.Path, file.CTime, file.Hash, file.MTime, file.Size, file.Data, file.Slug)
 
 	// Create with ON CONFLICT REPLACE
-	err := db.Clauses(clause.OnConflict{
+	err := db.Model(&File{}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "path"}, {Name: "site"}},
 		UpdateAll: true,
 	}).Create(file).Error
@@ -46,7 +46,7 @@ func NewFile(file *File) error {
 
 func RemoveFile(siteID, path string) error {
 	// _, err := db.Exec("DELETE FROM files WHERE site = ? AND path = ?", siteID, path)
-	err := db.Where("site = ? AND path = ?", siteID, path).Delete(&File{}).Error
+	err := db.Model(&File{}).Where("site = ? AND path = ?", siteID, path).Delete(&File{}).Error
 	return err
 }
 

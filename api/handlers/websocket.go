@@ -207,7 +207,8 @@ func WsHandler(c *gin.Context) {
 					return
 				}
 			}
-			vaultUID, err := vaultfiles.InsertMetadata(connectedVault.ID, &vaultfiles.File{
+			vaultUID, err := vaultfiles.InsertMetadata(&vaultfiles.File{
+				VaultID:   connectedVault.ID,
 				Path:      metadata.Path,
 				Hash:      metadata.Hash,
 				Extension: metadata.Extension,

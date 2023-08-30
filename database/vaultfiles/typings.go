@@ -10,10 +10,10 @@ type File struct {
 	Created    int64  `json:"created"`
 	Modified   int64  `json:"modified"`
 	Folder     bool   `json:"folder"`
-	Deleted    bool   `json:"deleted"`
+	Deleted    bool   `json:"deleted" gorm:"default:false"`
 	Data       []byte `json:"-"`
-	Newest     bool   `json:"newest"`
-	IsSnapshot bool   `json:"is_snapshot"`
+	Newest     bool   `json:"newest" gorm:"default:true"`
+	IsSnapshot bool   `json:"is_snapshot" gorm:"default:false"`
 }
 
 type FileResponse struct {

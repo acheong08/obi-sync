@@ -1,7 +1,6 @@
 package vaultfiles
 
 import (
-	"database/sql"
 	"log"
 	"time"
 
@@ -95,18 +94,15 @@ func RestoreFile(uid int) (*FileResponse, error) {
 	}, err
 }
 
-func GetVaultSize(vaultID string) (int64, error) {
-	var size sql.NullInt64
+func GetVaultSize(vaultID string) (int, error) {
+	var size int
 	// err := db.QueryRow("SELECT COALESCE(SUM(size), 0) FROM files WHERE vault_id = ?", vaultID).Scan(&size)
-	err := db.Select("COALESCE(SUM(size), 0)").Where("vault_id = ?", vaultID).First(&size).Error
+	err := db.Model(&File{}).Select("COALESCE(SUM(size), 0)").Where("vault_id = ?", vaultID).First(&size).Error
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err
 	}
-	if size.Valid {
-		return size.Int64, nil
-	}
-	return 0, nil
+	return size, nil
 }
 
 func GetVaultFiles(vaultID string) ([]*File, error) {
@@ -125,7 +121,7 @@ func GetVaultFiles(vaultID string) ([]*File, error) {
 	// 	}
 	// 	files = append(files, file)
 	// }
-	err := db.Select("uid, path, hash, extension, size, created, modified, folder, deleted").Where("vault_id = ? AND deleted = 0 AND newest = 1", vaultID).Find(&files).Error
+	err := db.Model(&File{}).Select("uid, path, hash, extension, size, created, modified, folder, deleted").Where("vault_id = ? AND deleted = 0 AND newest = 1", vaultID).Find(&files).Error
 	return files, err
 }
 
@@ -133,7 +129,7 @@ func GetFile(uid int) (*File, error) {
 	var file File
 	// Get hash and size
 	// err := db.QueryRow("SELECT hash, size, data FROM files WHERE uid = ?", uid).Scan(&file.Hash, &file.Size, &file.Data)
-	err := db.Select("hash, size, data").Where("uid = ?", uid).First(&file).Error
+	err := db.Model(&File{}).Select("hash, size, data").Where("uid = ?", uid).First(&file).Error
 	return &file, err
 }
 
@@ -154,7 +150,7 @@ func GetFileHistory(path string) ([]*File, error) {
 	// 	}
 	// 	files = append(files, file)
 	// }
-	err := db.Select("uid, path, size, modified, folder, deleted").Where("path = ?", path).Order("modified DESC").Find(&files).Error
+	err := db.Model(&File{}).Select("uid, path, size, modified, folder, deleted").Where("path = ?", path).Order("modified DESC").Find(&files).Error
 	return files, err
 }
 
@@ -187,11 +183,11 @@ func GetDeletedFiles() (any, error) {
 	// if files == nil {
 	// 	return make([]File, 0), nil
 	// }
-	err := db.Select("uid, modified, size, path, folder, deleted").Where("deleted = ?", true).Find(&files).Error
+	err := db.Model(&File{}).Select("uid, modified, size, path, folder, deleted").Where("deleted = ?", true).Find(&files).Error
 	return &files, err
 }
 
-func InsertMetadata(vaultID string, file *File) (int, error) {
+func InsertMetadata(file *File) (int, error) {
 	// If created & modified are 0, set them to current time
 	if file.Created == 0 {
 		file.Created = time.Now().UnixMilli()

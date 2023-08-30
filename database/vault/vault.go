@@ -182,7 +182,7 @@ func IsVaultOwner(vaultID, userEmail string) bool {
 	var email string
 	// Check vaults table
 	// db.DBConnection.QueryRow("SELECT user_email FROM vaults WHERE id = ?", vaultID).Scan(&email)
-	err := db.Model(&Vault{}).Where("id = ?", vaultID).Select("user_email").Scan(&email)
+	err := db.Model(&Vault{}).Where("id = ?", vaultID).Select("user_email").Scan(&email).Error
 	return email == userEmail && err == nil
 }
 
@@ -267,7 +267,6 @@ func DeleteVault(id, email string) error {
 
 func GetVault(id, keyHash string) (*Vault, error) {
 	vault := &Vault{}
-	var dbKeyHash string
 	// err := db.DBConnection.QueryRow("SELECT * FROM vaults WHERE id = ?", id).Scan(
 	// 	&vault.ID, &vault.UserEmail, &vault.Created, &vault.Host, &vault.Name, &vault.Password, &vault.Salt,
 	// 	&vault.Version, &dbKeyHash)
@@ -276,7 +275,7 @@ func GetVault(id, keyHash string) (*Vault, error) {
 		return nil, err
 	}
 	if keyHash != "" {
-		if dbKeyHash != keyHash {
+		if vault.KeyHash != keyHash {
 			return nil, errors.New("invalid keyhash")
 		}
 	}
