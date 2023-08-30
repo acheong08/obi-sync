@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"database/sql"
 	"net/url"
 
 	"github.com/acheong08/obsidian-sync/database/publish"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func ListPublish(c *gin.Context) {
@@ -179,7 +179,7 @@ func SitePublish(c *gin.Context) {
 	}
 	site, err := publish.GetSlug(req.Slug)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			c.JSON(200, gin.H{
 				"code":    "NOTFOUND",
 				"message": "Slug not found",
@@ -299,7 +299,7 @@ func GetPublishedFile(c *gin.Context) {
 	// Get site id from slug
 	site, err := publish.GetSlug(slug)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			c.JSON(404, gin.H{
 				"error": "Site not found",
 			})
