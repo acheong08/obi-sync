@@ -1,7 +1,7 @@
 package vaultfiles
 
 type File struct {
-	UID        int    `json:"uid" gorm:"primary_key"`
+	UID        int    `json:"uid" gorm:"primary_key;autoIncrement"`
 	VaultID    string `json:"vault_id"`
 	Hash       string `json:"hash"`
 	Path       string `json:"path"`
