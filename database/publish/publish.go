@@ -59,9 +59,13 @@ func CreateSite(owner string) (*Site, error) {
 		Owner:   owner,
 		Slug:    uuid.New().String(),
 	}
-	// _, err := db.Exec("INSERT INTO sites (id, host, created, owner, slug) VALUES (?, ?, ?, ?, ?)", site.ID, site.Host, site.Created, site.Owner, site.Slug)
 	err := db.Create(&site).Error
 	return &site, err
+}
+
+func DeleteSite(siteID string) error {
+	err := db.Model(&Site{}).Where("id = ?", siteID).Delete(&Site{}).Error
+	return err
 }
 
 type slugResponse struct {

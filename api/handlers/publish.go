@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func ListPublish(c *gin.Context) {
+func ListSites(c *gin.Context) {
 	var req struct {
 		Token   string `json:"token" binding:"required"`
 		Version int    `json:"version"`
@@ -62,7 +62,7 @@ func ListPublish(c *gin.Context) {
 	})
 }
 
-func CreatePublish(c *gin.Context) {
+func CreateSite(c *gin.Context) {
 	var req struct {
 		Token string `json:"token" binding:"required"`
 	}
@@ -102,15 +102,57 @@ func CreatePublish(c *gin.Context) {
 	c.JSON(200, site)
 }
 
-// Configures the slug (name of the site)
-func SlugPublish(c *gin.Context) {
+// Deletes a site
+func DeleteSite(c *gin.Context) {
 	var req struct {
-		ID   string `json:"id" binding:"required"`
-		Slug string `json:"slug" binding:"required"`
+		SiteUID string `json:"site_uid" binding:"required"`
+		Token   string `json:"token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "invalid request"})
+		return
+	}
+	email, err := utilities.GetJwtEmail(req.Token)
+	if err != nil {
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+	siteOwner, err := publish.GetSiteOwner(req.SiteUID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	if email != siteOwner {
+		c.JSON(403, gin.H{"error": "You do not have permission to delete this site"})
+		return
+	}
+	err = publish.DeleteSite(req.SiteUID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{})
+
+}
+
+// Configures the slug (name of the site)
+func ConfigureSiteSlug(c *gin.Context) {
+	var req struct {
+		ID    string `json:"id" binding:"required"`
+		Slug  string `json:"slug" binding:"required"`
+		Token string `json:"token" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
 			"error": "invalid request",
+		})
+		return
+	}
+	email, _ := utilities.GetJwtEmail(req.Token)
+	siteOwner, _ := publish.GetSiteOwner(req.ID)
+	if email != siteOwner {
+		c.JSON(403, gin.H{
+			"error": "You do not have permission to change this site's slug",
 		})
 		return
 	}
@@ -124,7 +166,7 @@ func SlugPublish(c *gin.Context) {
 	c.JSON(200, req)
 }
 
-func SlugsPublish(c *gin.Context) {
+func GetSlugInfo(c *gin.Context) {
 	var req struct {
 		Token string   `json:"token" binding:"required"`
 		IDs   []string `json:"ids" binding:"required"`
@@ -159,7 +201,7 @@ func SlugsPublish(c *gin.Context) {
 	c.JSON(200, siteSlugs)
 }
 
-func SitePublish(c *gin.Context) {
+func SiteInfo(c *gin.Context) {
 	var req struct {
 		Token string `json:"token" binding:"required"`
 		Slug  string `json:"slug" binding:"required"`

@@ -46,19 +46,15 @@ func main() {
 
 	publishAPI := router.Group("/api")
 	publishGroup := router.Group("/publish")
-	// Checks if a site already exists
-	publishAPI.POST("site", handlers.SitePublish)
-	// Creates a new site (on host. similar to vault)
-	publishGroup.POST("create", handlers.CreatePublish)
-	// list files in a site
-	publishGroup.POST("list", handlers.ListPublish)
-	publishAPI.POST("list", handlers.ListPublish)
-	// Configures the slug (name of the site)
-	publishAPI.POST("slug", handlers.SlugPublish)
-	// returns a map of slug id to name
-	publishAPI.POST("slugs", handlers.SlugsPublish)
+	publishAPI.POST("site", handlers.SiteInfo)
+	publishGroup.POST("create", handlers.CreateSite)
+	publishGroup.POST("list", handlers.ListSites)
+	publishAPI.POST("list", handlers.ListSites)
+	publishAPI.POST("slug", handlers.ConfigureSiteSlug)
+	publishAPI.POST("slugs", handlers.GetSlugInfo)
 	publishAPI.POST("upload", handlers.UploadFile)
 	publishAPI.POST("remove", handlers.RemoveFile)
+	publishGroup.POST("delete", handlers.DeleteSite)
 
 	router.GET("/published/:slug/*path", handlers.GetPublishedFile)
 
