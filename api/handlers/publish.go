@@ -362,6 +362,19 @@ func GetPublishedFile(c *gin.Context) {
 		})
 		return
 	}
-	// Return file []byte
-	c.Data(200, "text/markdown; charset=utf-8", []byte(file))
+	c.String(200, file)
+}
+func GetSiteIndex(c *gin.Context) {
+	slug := c.Param("slug")
+	site, err := publish.GetSlug(slug)
+	if err != nil {
+		c.JSON(404,gin.H{"error":err.Error()})
+		return
+	}
+	files, err := publish.GetFiles(site.ID)
+	if err != nil {
+		c.JSON(500,gin.H{"error":err.Error()})
+		return
+	}
+	c.JSON(200, files)
 }

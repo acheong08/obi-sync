@@ -57,6 +57,7 @@ func main() {
 	publishGroup.POST("delete", handlers.DeleteSite)
 
 	router.GET("/published/:slug/*path", handlers.GetPublishedFile)
+	router.GET("/published/:slug", handlers.GetSiteIndex)
 
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
