@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  obsidian_sync:
+    image: ghcr.io/acheong08/rev-obsidian-sync:latest
+    container_name: obsidian_sync
+    ports:
+      - 3000:3000
+    environment:
+      - DOMAIN_NAME=yourdomain.com
+      - ADDR_HTTP=0.0.0.0:3000
+      - SIGNUP_KEY=signup_key_secret
+    volumes:
+      - sync_data:/data
+
+volumes:
+  sync_data:
