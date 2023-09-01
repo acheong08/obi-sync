@@ -13,7 +13,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /obsidian-sync ./cmd/obsidian-sync/
 
 # Deploy the application binary into a lean image
-FROM gcr.io/distroless/base-debian11 AS build-release-stage
+FROM --platform=${TARGETPLATFORM} gcr.io/distroless/base-debian11 AS build-release-stage
 
 WORKDIR /
 
