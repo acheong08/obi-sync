@@ -29,7 +29,7 @@ These features are not in the latest release but in the main branch. They might 
 
 ## Setup
 
-[Quickstart with Docker](https://github.com/acheong08/rev-obsidian-sync/wiki/Docker-Compose)
+[Quickstart with Docker](https://github.com/acheong08/rev-obsidian-sync/blob/main/docker-compose.yml)
 
 ### Environment variables
 #### Required:
