@@ -61,6 +61,7 @@ func main() {
 
 	router.GET("/", handlers.WsHandler)
 	router.GET("/ws", handlers.WsHandler)
+	router.GET("/ws.obsidian.md", handlers.WsHandler)
 
 	endless.ListenAndServe(config.AddressHttp, router)
 
