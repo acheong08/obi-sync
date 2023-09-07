@@ -2,8 +2,6 @@
 
 Reverse engineered obsidian sync server (NOT OFFICIAL).
 
-I have abandoned ObsidianMD due to bad faith behavior. I am working on writing a compatible Logseq plugin that will use this server.
-
 > [!WARNING]
 > The main branch is the development branch. For stable usage, use the latest release.
 
