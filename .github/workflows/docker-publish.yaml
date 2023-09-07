@@ -35,9 +35,6 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platforms: [linux/amd64, linux/arm64]
     permissions:
       contents: read
       packages: write
@@ -93,5 +90,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: ${{ matrix.platforms }}
-
+          platforms: linux/amd64,linux/arm64/v8  # Add the desired platforms here
