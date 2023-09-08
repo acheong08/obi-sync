@@ -32,12 +32,17 @@ These features are not in the latest release but in the main branch. They might 
 [Quickstart with Docker](https://github.com/acheong08/rev-obsidian-sync/blob/main/docker-compose.yml)
 
 ### Environment variables
+
 #### Required:
+
 - `DOMAIN_NAME` - The domain name or IP address of your server. Include port if not on 80 or 433. The default is `localhost:3000`
+
 #### Optional
+
 - `ADDR_HTTP` - Server listener address. The default is `127.0.0.1:3000`
 - `SIGNUP_KEY` - Signup API is at `/user/signup`. This optionally restricts users who can sign up.
 - `DATA_DIR` - Where data is saved. Default `.`
+- `MAX_STORAGE_GB` - The maximum storage per user in GB. Default `10`
 
 ### Building & Running
 
@@ -46,6 +51,7 @@ These features are not in the latest release but in the main branch. They might 
 - `go run cmd/obsidian-sync/main.go`
 
 Optional:
+
 - Configure [nginx](https://github.com/acheong08/rev-obsidian-sync/wiki/Nginx-Configuration)
 - HTTPS is recommended.
 
@@ -56,6 +62,7 @@ When you're done, install and configure the [plugin](https://github.com/acheong0
 `go run cmd/signup/main.go`
 
 Alternatively:
+
 ```bash
 curl --request POST \
   --url https://yourdomain.com/user/signup \
@@ -67,4 +74,5 @@ curl --request POST \
 	"signup_key": "<SIGNUP_KEY>"
 }'
 ```
+
 You can set the signup key via the `SIGNUP_KEY` environment variable. If it has not been set, you can exclude it from the request.
