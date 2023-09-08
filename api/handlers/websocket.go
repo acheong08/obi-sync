@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/database/vault"
 	"github.com/acheong08/obsidian-sync/database/vaultfiles"
 	"github.com/acheong08/obsidian-sync/utilities"
@@ -154,7 +155,7 @@ func WsHandler(c *gin.Context) {
 			ws.WriteJSON(gin.H{
 				"res":   "ok",
 				"size":  size,
-				"limit": 10737418240,
+				"limit": config.MaxStorageBytes,
 			})
 		case "pull":
 			var pull struct {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 )
 
 var SecretPath = "secret.gob"
@@ -19,6 +20,8 @@ var DataDir = "."
 var Secret []byte
 
 var SignUpKey string
+
+var MaxStorageBytes int64 = 10 * 1073741824
 
 // Generate a random password, hash it, and store it in the Secret variable & a file
 // Load secret.gob if it exists
@@ -48,6 +51,13 @@ func init() {
 		}
 
 		SecretPath = path.Join(DataDir, "secret.gob")
+	}
+	if os.Getenv("MAX_STORAGE_GB") != "" {
+		gb_size, err := strconv.Atoi(os.Getenv("MAX_STORAGE_GB"))
+		if err != nil {
+			panic(err)
+		}
+		MaxStorageBytes = int64(gb_size) * 1073741824
 	}
 	if _, err := os.Stat(SecretPath); err != nil {
 		Secret = make([]byte, 64)
