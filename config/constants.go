@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 	"strconv"
+
+	dotenv "github.com/joho/godotenv"
 )
 
 var SecretPath = "secret.gob"
@@ -23,9 +25,15 @@ var SignUpKey string
 
 var MaxStorageBytes int64 = 10 * 1073741824
 
+var MaxSitesPerUser int = 5
+
 // Generate a random password, hash it, and store it in the Secret variable & a file
 // Load secret.gob if it exists
 func init() {
+	err := dotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
 	if os.Getenv("HOST") != "" { // Legacy. Use DOMAIN_NAME instead
 		log.Println("Warning: HOST is deprecated. Use DOMAIN_NAME instead")
 		Host = os.Getenv("HOST")
@@ -58,6 +66,13 @@ func init() {
 			panic(err)
 		}
 		MaxStorageBytes = int64(gb_size) * 1073741824
+	}
+	if os.Getenv("MAX_SITES_PER_USER") != "" {
+		sites, err := strconv.Atoi(os.Getenv("MAX_SITES_PER_USER"))
+		if err != nil {
+			panic(err)
+		}
+		MaxSitesPerUser = sites
 	}
 	if _, err := os.Stat(SecretPath); err != nil {
 		Secret = make([]byte, 64)

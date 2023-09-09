@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/url"
 
+	"github.com/acheong08/obsidian-sync/config"
 	"github.com/acheong08/obsidian-sync/database/publish"
 	"github.com/acheong08/obsidian-sync/utilities"
 	"github.com/gin-gonic/gin"
@@ -38,7 +40,7 @@ func ListSites(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"sites":  sites,
 			"shared": make([]interface{}, 0),
-			"limit":  1,
+			"limit":  config.MaxSitesPerUser,
 		})
 		return
 	}
@@ -86,9 +88,9 @@ func CreateSite(c *gin.Context) {
 		})
 		return
 	}
-	if len(sites) >= 1 {
+	if len(sites) >= config.MaxSitesPerUser {
 		c.JSON(200, gin.H{
-			"error": "You have reached the limit of 1 site",
+			"error": fmt.Sprintf("You have reached the limit of %d site", config.MaxSitesPerUser),
 		})
 		return
 	}
@@ -368,12 +370,12 @@ func GetSiteIndex(c *gin.Context) {
 	slug := c.Param("slug")
 	site, err := publish.GetSlug(slug)
 	if err != nil {
-		c.JSON(404,gin.H{"error":err.Error()})
+		c.JSON(404, gin.H{"error": err.Error()})
 		return
 	}
 	files, err := publish.GetFiles(site.ID)
 	if err != nil {
-		c.JSON(500,gin.H{"error":err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(200, files)

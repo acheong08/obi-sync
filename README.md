@@ -43,6 +43,7 @@ These features are not in the latest release but in the main branch. They might 
 - `SIGNUP_KEY` - Signup API is at `/user/signup`. This optionally restricts users who can sign up.
 - `DATA_DIR` - Where data is saved. Default `.`
 - `MAX_STORAGE_GB` - The maximum storage per user in GB. Default `10`
+- `MAX_SITES_PER_USER` - The maximum number of sites per user. Default `5`
 
 ### Building & Running
 

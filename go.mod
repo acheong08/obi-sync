@@ -9,6 +9,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
+	github.com/joho/godotenv v1.5.1
 	github.com/sethvargo/go-password v0.2.0
 	golang.org/x/crypto v0.9.0
 	golang.org/x/term v0.8.0
