@@ -15,7 +15,7 @@ Reverse engineered obsidian sync server (NOT OFFICIAL).
 - File history/recovery/snapshots
 - Works natively on IOS/Android/Linux/MacOS/Windows... (via the plugin)
 - Vault sharing
-- Publish (markdown only. no rendering yet)
+- [Publish (markdown only. no rendering yet)](https://github.com/acheong08/obi-sync/wiki/Obsidian-Publish)
 
 ### Experimental
 
@@ -26,6 +26,7 @@ These features are not in the latest release but in the main branch. They might 
 ## To do
 
 - Fix bugs
+- Improve publish
 
 ## Setup
 
