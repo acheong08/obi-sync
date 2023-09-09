@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   obsidian_sync:
-    image: ghcr.io/acheong08/rev-obsidian-sync:latest
+    image: ghcr.io/acheong08/obi-sync:latest
     container_name: obsidian_sync
     ports:
       - 3000:3000
