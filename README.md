@@ -29,7 +29,7 @@ These features are not in the latest release but in the main branch. They might 
 - Improve publish
 
 
-> ![NOTE]
+> [!NOTE]
 > The comprehensive documentation by @Aetherinox can be found in the [wiki](https://github.com/acheong08/obi-sync/wiki).
 
 ## Quickstart
