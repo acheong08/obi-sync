@@ -15,7 +15,7 @@ To build and run Obi-sync directly from the git repo, execute the following:
 
 <br />
 
-<sub>[🔝 Top](#Index)</sub>
+<sub>[🔝 Top](#development)</sub>
 
 <br /><br /><br />
 
