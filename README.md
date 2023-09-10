@@ -28,11 +28,11 @@ These features are not in the latest release but in the main branch. They might 
 - Fix bugs
 - Improve publish
 
+## Quickstart
 
 > [!NOTE]
 > The comprehensive documentation by @Aetherinox can be found in the [wiki](https://github.com/acheong08/obi-sync/wiki).
 
-## Quickstart
 
 [Quickstart with Docker](https://github.com/acheong08/rev-obsidian-sync/blob/main/docker-compose.yml)
 
