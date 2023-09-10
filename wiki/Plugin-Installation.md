@@ -40,7 +40,7 @@ To manually get the latest copy of the unofficial Obi-Sync Plugin, [download her
 <br /><br />
 
 ### Enable Plugin
-Once the plugin is installed, activate it by launching Obsidian.md. 
+Once the plugin is installed, activate it by launching Obsidian.md.
 - Open `Obsidian Settings` ![uJ5MSWk](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/f5695ae4-0730-496c-b182-3bf4836ba571)
 - On left menu, click `Community Plugins`
 - Scroll down to `Custom Native Sync` and enable ![f8iiGTI](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/e38ac70d-60ea-4cf7-939a-ab56d5302f11)
@@ -70,7 +70,7 @@ The login dialog will appear:
 
 ![aVD8YRs](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/5d065b57-708c-4bbe-8373-8d11354b09f5)
 
-Fill in your email address and password that you used to register your account with the `cURL` command in the section [Creating New User](https://github.com/acheong08/obi-sync/wiki/Server-Installation#creating-new-user).
+Fill in your email address and password that you used to register your account with the `cURL` command in the section [Creating New User](Server-Installation.md#creating-new-user).
 
 ```powershell
 curl --request POST `
@@ -91,7 +91,7 @@ curl --request POST `
 
 <br />
 
-Next, on the left side under `Core Plugins`, select `Sync`. 
+Next, on the left side under `Core Plugins`, select `Sync`.
 
 On the right side, click the `Choose` button:
 
@@ -197,7 +197,7 @@ From this point, you can upload whatever files you wish to have published and pl
 
 <br />
 
-<sub>[🔝 Top](#Index)</sub>
+<sub>[🔝 Top](#plugin-installation)</sub>
 
 <br />
 

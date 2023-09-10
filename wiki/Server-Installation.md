@@ -30,13 +30,13 @@ If you want Cloudflare to handle the SSL certificate, set each record's `Proxy S
 <br /><br /><br />
 
 ### Docker-Compose (Option 1)
-If using this option, you must decide which setup you would like to use. 
+If using this option, you must decide which setup you would like to use.
 - One File: `docker-compose.yml`
 - Two Fles: `docker-compose.yml` and `.env`
 
 <br /><br />
 
-Using the `two file` option is slightly more secure in regards to your `SIGNUP_KEY` being exposed to logs. 
+Using the `two file` option is slightly more secure in regards to your `SIGNUP_KEY` being exposed to logs.
 
 - If you are not concerned about security, use [DOCKER-COMPOSE.YML ONLY](#-docker-composeyml-only) option.
 - If you want the extra security, use [DOCKER-COMPOSE.YML + .ENV](#-docker-composeyml--env) option.
@@ -75,7 +75,7 @@ volumes:
 
 <br />
 
-<sub>[🔹Continue With Installation](#Variable-List)</sub>
+<sub>[🔹Continue With Installation](#variable-list)</sub>
 
 <br /><br />
 
@@ -127,7 +127,7 @@ USER_MAX_SITES=5
 
 <br />
 
-<sub>[🔹Continue With Installation](#Variable-List)</sub>
+<sub>[🔹Continue With Installation](#variable-list)</sub>
 
 <br />
 
@@ -137,14 +137,14 @@ USER_MAX_SITES=5
 
 #### Variable List
 
-After creating `docker-compose.yml` / `.env` file(s), edit the variables to match your domain `DOMAIN_NAME`, registration signup key `SIGNUP_KEY`, etc. 
+After creating `docker-compose.yml` / `.env` file(s), edit the variables to match your domain `DOMAIN_NAME`, registration signup key `SIGNUP_KEY`, etc.
 <br /><br />
 A description of each variable is provided below:
 
 <br />
 
 | Variable | Description | Required | Default |
-| --- | --- | --- | --- | 
+| --- | --- | --- | --- |
 | `DOMAIN_NAME` | This is the URL to your API subdomain | Yes | `localhost:3000` |
 | `ADDR_HTTP` | The address to run Obi-Sync on | No | `127.0.0.1:3000` |
 | `SIGNUP_KEY` | Required later when creating users who will be able to access your self-hosted server | No | None |
@@ -237,7 +237,7 @@ map $http_upgrade $connection_upgrade {
             proxy_set_header    Host $host;
             proxy_pass          http://127.0.0.1:3000/;
         }
-        
+
     }
 
 #
@@ -254,7 +254,7 @@ map $http_upgrade $connection_upgrade {
         listen [::]:80;
 
         server_name         	www.publish.domain.com publish.domain.com;
-        
+
         location /
         {
             proxy_pass     	http://127.0.0.1:3000/published/;
@@ -283,7 +283,7 @@ This can be done by opening Powershell in Windows, or Terminal in Linux and exec
 
 > [!NOTE]
 > `email`: This is the email address you will use in Obsidian's `About` tab to sign into your self-hosted server.
-> 
+>
 > `password`: Pick any password you wish to use. This is the password you will use in the Obsidian.md program once you configure the plugin to connect to your self-hosted server.
 >
 > `name`: Can be anything, not super important.
@@ -337,7 +337,7 @@ A **failed** registration will return the following response:
 
 <br />
 
-<sub>[🔝 Top](#Index)</sub>
+<sub>[🔝 Top](#server-installation)</sub>
 
 <br />
 
