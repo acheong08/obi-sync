@@ -7,7 +7,7 @@ Reverse engineered obsidian sync server (NOT OFFICIAL).
 
 > [!NOTE]
 > The plugin is broken on `obsidian >= 1.4.11`. This is intentional by the official ObsidianMD team. They have made clear their dissatisfaction with this project.
-> [The Path Forward](https://github.com/acheong08/obi-sync/issues/29) - We are in the early stages of designing an alternative plugin that does not make use of existing code by ObsidianMD team. It is still in the design phase and help is needed. For now, we can manually patch the files from https://github.com/obsidianmd/obsidian-releases/releases/. I will write up a wiki page or automate that soon.
+> [The Path Forward](https://github.com/acheong08/obi-sync/issues/29) - We are in the early stages of designing an alternative plugin that does not make use of existing code by ObsidianMD team. It is still in the design phase and [help](https://github.com/acheong08/obi-sync-lib/issues/1) is needed. For now, we can manually patch the files from https://github.com/obsidianmd/obsidian-releases/releases/. I will write up a wiki page or automate that soon.
 
 ## Features
 
