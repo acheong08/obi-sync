@@ -1,9 +1,11 @@
 ## Plugin Installation
+
 In order for your new self-hosted Publish and Sync server to function properly, you must install a plugin to your copy of Obsidian.md
 
 <br /><br />
 
 ### Install with WGET
+
 Navigate to your vault's `.obsidian` folder:
 
 ```shell
@@ -25,7 +27,9 @@ wget https://github.com/acheong08/rev-obsidian-sync-plugin/raw/master/main.js ht
 <br /><br />
 
 ### Install Manually
+
 To manually get the latest copy of the unofficial Obi-Sync Plugin, [download here](https://github.com/acheong08/rev-obsidian-sync-plugin/releases).
+
 - Navigate to the folder where your vault is on your local machine, and enter the `.obsidian\plugins\` folder.
 - Create a new folder: `custom-sync-plugin`
 - Inside the `custom-sync-plugin` folder, install the plugin files:
@@ -40,7 +44,9 @@ To manually get the latest copy of the unofficial Obi-Sync Plugin, [download her
 <br /><br />
 
 ### Enable Plugin
+
 Once the plugin is installed, activate it by launching Obsidian.md.
+
 - Open `Obsidian Settings` ![uJ5MSWk](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/f5695ae4-0730-496c-b182-3bf4836ba571)
 - On left menu, click `Community Plugins`
 - Scroll down to `Custom Native Sync` and enable ![f8iiGTI](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/e38ac70d-60ea-4cf7-939a-ab56d5302f11)
@@ -54,10 +60,10 @@ Once the plugin is installed, activate it by launching Obsidian.md.
 
 ![ioHy4jQ](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/61d154df-430d-4785-983c-633418607d12)
 
-
 <br /><br />
 
 ### Configure Sync
+
 Before doing these steps, ensure that your obi-sync self-hosted server is running.
 
 Open your Obsidian.md Settings ![uJ5MSWk](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/f5695ae4-0730-496c-b182-3bf4836ba571) and select `About`.
@@ -70,7 +76,7 @@ The login dialog will appear:
 
 ![aVD8YRs](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/5d065b57-708c-4bbe-8373-8d11354b09f5)
 
-Fill in your email address and password that you used to register your account with the `cURL` command in the section [Creating New User](Server-Installation.md#creating-new-user).
+Fill in your email address and password that you used to register your account with the `cURL` command in the section [Creating New User](Server-Installation#creating-new-user).
 
 ```powershell
 curl --request POST `
@@ -140,6 +146,7 @@ Once pressing the `View` button, a new dialog will appear and show you the statu
 <br /><br />
 
 ### Configure Publish
+
 These instructions help guide you through setting up `Obsidian Publish`. This feature will allow you to view your Vault .md notes on your webserver.
 
 Open your Obsidian.md settings, and under `Options` on the left, select `Core Plugins`. In the middle of the screen, enable ![f8iiGTI](https://github.com/Aetherinox/obi-sync-docs/assets/118329232/e38ac70d-60ea-4cf7-939a-ab56d5302f11) `Publish`.
