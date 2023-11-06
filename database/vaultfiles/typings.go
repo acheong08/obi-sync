@@ -16,6 +16,11 @@ type File struct {
 	IsSnapshot bool   `json:"is_snapshot" gorm:"default:false"`
 }
 
+type HistoryFile struct {
+	File
+	TS int64 `json:"ts"`
+}
+
 // 	CREATE TABLE IF NOT EXISTS files (
 // 		uid INTEGER PRIMARY KEY AUTOINCREMENT,
 // 		vault_id TEXT,

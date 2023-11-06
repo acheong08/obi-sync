@@ -88,10 +88,20 @@ func GetFile(uid int) (*File, error) {
 	return &file, err
 }
 
-func GetFileHistory(path string) ([]*File, error) {
+func GetFileHistory(path string) ([]*HistoryFile, error) {
 	var files []*File
 	err := db.Model(&File{}).Select("uid, path, size, modified, folder, deleted").Where("path = ?", path).Order("modified DESC").Find(&files).Error
-	return files, err
+	if err != nil {
+		return nil, err
+	}
+	var history []*HistoryFile = make([]*HistoryFile, len(files))
+	for i, file := range files {
+		history[i] = &HistoryFile{
+			File: *file,
+			TS:   file.Modified,
+		}
+	}
+	return history, err
 }
 
 func GetDeletedFiles() (any, error) {
