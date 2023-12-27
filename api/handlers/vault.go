@@ -14,6 +14,7 @@ func ListVaults(c *gin.Context) {
 	type response struct {
 		Shared []*vault.Vault `json:"shared"`
 		Vaults []*vault.Vault `json:"vaults"`
+		Limit	int            `json:"limit"`
 	}
 	var req request
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -42,6 +43,7 @@ func ListVaults(c *gin.Context) {
 	c.JSON(200, response{
 		Shared: shared,
 		Vaults: vaults,
+		Limit:  100,
 	})
 
 }
