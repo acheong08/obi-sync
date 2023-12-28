@@ -32,13 +32,15 @@ func InviteVaultShare(c *gin.Context) {
 		c.JSON(401, gin.H{
 			"error": "You do not have access to this vault",
 		})
+		return
 	}
 
 	user, err := vault.UserInfo(req.Email)
-	if err != nil {
+	if err != nil || user == nil {
 		c.JSON(200, gin.H{
 			"error": "User does not exist",
 		})
+		return
 	}
 
 	err = vault.ShareVaultInvite(req.Email, user.Name, req.VaultID)
@@ -46,6 +48,7 @@ func InviteVaultShare(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"error": "Failed to share vault",
 		})
+		return
 	}
 
 	c.JSON(200, gin.H{})
